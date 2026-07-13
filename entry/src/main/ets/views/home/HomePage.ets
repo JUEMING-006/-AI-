@@ -296,7 +296,42 @@ export struct HomePage {
   build() {
     Scroll() {
       Column() {
-        // 顶部倒计时区域 — 简约文字展示
+        // 顶部标题区域 — Logo + 应用名称
+        Column() {
+          Row() {
+            // Logo 图标
+            Column() {
+              Text('🎓')
+                .fontSize(32)
+            }
+            .width(48)
+            .height(48)
+            .justifyContent(FlexAlign.Center)
+            .alignItems(HorizontalAlign.Center)
+
+            // 标题文字
+            Column({ space: 2 }) {
+              Text('升本智图')
+                .fontSize(28)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(Color.White)
+
+              Text('您的智能升本助手 · 精准规划每一步')
+                .fontSize(13)
+                .fontColor('#80FFFFFF')
+            }
+            .alignItems(HorizontalAlign.Start)
+            .justifyContent(FlexAlign.Center)
+            .layoutWeight(1)
+          }
+          .width('100%')
+          .justifyContent(FlexAlign.Start)
+          .alignItems(VerticalAlign.Center)
+        }
+        .width('100%')
+        .padding({ top: Spacing.XL, left: Spacing.LG, right: Spacing.LG, bottom: Spacing.MD })
+
+        // 倒计时区域
         Column() {
           Row() {
             Text(`${this.daysRemaining}`)
@@ -310,14 +345,14 @@ export struct HomePage {
               .alignSelf(ItemAlign.End)
           }
           .alignItems(VerticalAlign.Bottom)
+          .margin({ top: Spacing.XS })
 
           Text('距离专升本考试 · ' + this.examDate)
             .fontSize(FontSize.CAPTION)
             .fontColor(AppColors.TEXT_HINT)
-            .margin({ top: Spacing.SM })
         }
         .width('100%')
-        .padding({ top: Spacing.XL, left: Spacing.LG, right: Spacing.LG })
+        .padding({ top: Spacing.XL, bottom: Spacing.LG, left: Spacing.LG, right: Spacing.LG })
         .linearGradient({
           direction: GradientDirection.Bottom,
           colors: [['#14007AFF', 0.0], ['#00007AFF', 1.0]]
