@@ -1,90 +1,53 @@
-import { ScoreInput, RecommendCollege, VolunteerPlan } from '../models/VolunteerModel';
+import { ScoreInput, RecommendCollege, VolunteerPlan, SubjectScore } from '../models/VolunteerModel';
 import { httpClient } from './HttpClient';
+import type { AxiosResponse } from '@ohos/axios';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 
 const DOMAIN: number = 0x0001;
 const TAG: string = 'VolunteerService';
 
-// Mock 院校数据池
-interface CollegeTemplate {
-  name: string;
-  type: string;
-  baseScore: number;
-  enrollCount: number;
+// ── JSON → Model 映射 ──
+
+function toRecommendCollege(d: Record<string, Object>): RecommendCollege {
+  const c = new RecommendCollege();
+  c.id = d['id'] as string;
+  c.name = d['name'] as string;
+  c.type = d['type'] as string;
+  c.tier = d['tier'] as string;
+  c.probability = d['probability'] as number;
+  c.lastYearMinScore = d['lastYearMinScore'] as number;
+  c.enrollCount = d['enrollCount'] as number;
+  c.isSelected = d['isSelected'] as boolean;
+  c.tuition = (d['tuition'] as number) ?? 0;
+  c.major = (d['major'] as string) ?? '';
+  c.city = (d['city'] as string) ?? '';
+  return c;
 }
 
-const RUSH_COLLEGES: CollegeTemplate[] = [
-  { name: '华南师范大学', type: '公办', baseScore: 385, enrollCount: 120 },
-  { name: '广东工业大学', type: '公办', baseScore: 378, enrollCount: 95 },
-  { name: '广州大学', type: '公办', baseScore: 372, enrollCount: 110 },
-  { name: '深圳技术大学', type: '公办', baseScore: 380, enrollCount: 80 },
-  { name: '东莞理工学院', type: '公办', baseScore: 368, enrollCount: 90 }
-];
-
-const STABLE_COLLEGES: CollegeTemplate[] = [
-  { name: '广东技术师范大学', type: '公办', baseScore: 355, enrollCount: 150 },
-  { name: '仲恺农业工程学院', type: '公办', baseScore: 348, enrollCount: 130 },
-  { name: '五邑大学', type: '公办', baseScore: 342, enrollCount: 100 },
-  { name: '广东石油化工学院', type: '公办', baseScore: 338, enrollCount: 120 },
-  { name: '岭南师范学院', type: '公办', baseScore: 345, enrollCount: 140 },
-  { name: '韶关学院', type: '公办', baseScore: 335, enrollCount: 110 },
-  { name: '嘉应学院', type: '公办', baseScore: 330, enrollCount: 95 }
-];
-
-const SAFE_COLLEGES: CollegeTemplate[] = [
-  { name: '广州城市理工学院', type: '民办', baseScore: 310, enrollCount: 200 },
-  { name: '广东白云学院', type: '民办', baseScore: 305, enrollCount: 180 },
-  { name: '广州商学院', type: '民办', baseScore: 298, enrollCount: 160 },
-  { name: '广东科技学院', type: '民办', baseScore: 295, enrollCount: 170 },
-  { name: '广州工商学院', type: '民办', baseScore: 290, enrollCount: 150 }
-];
-
-function buildCollege(template: CollegeTemplate, tier: string, probability: number, index: number): RecommendCollege {
-  const college: RecommendCollege = new RecommendCollege();
-  college.id = `college_${tier}_${index}`;
-  college.name = template.name;
-  college.type = template.type;
-  college.tier = tier;
-  college.probability = probability;
-  college.lastYearMinScore = template.baseScore;
-  college.enrollCount = template.enrollCount;
-  college.isSelected = false;
-  return college;
-}
-
-function generateMockPlan(totalScore: number): VolunteerPlan {
-  const plan: VolunteerPlan = new VolunteerPlan();
-  const recommendations: RecommendCollege[] = [];
-
-  // 冲刺 3 所（录取概率 20-40%）
-  const rushIndices: number[] = [0, 1, 2];
-  for (const i of rushIndices) {
-    const template: CollegeTemplate = RUSH_COLLEGES[i];
-    const prob: number = Math.max(15, Math.min(45, 50 - (template.baseScore - totalScore) * 2));
-    recommendations.push(buildCollege(template, '冲刺', prob, i));
-  }
-
-  // 稳妥 5 所（录取概率 50-75%）
-  const stableIndices: number[] = [0, 1, 2, 3, 4];
-  for (const i of stableIndices) {
-    const template: CollegeTemplate = STABLE_COLLEGES[i];
-    const prob: number = Math.max(45, Math.min(80, 70 + (totalScore - template.baseScore)));
-    recommendations.push(buildCollege(template, '稳妥', prob, i));
-  }
-
-  // 保底 3 所（录取概率 80-98%）
-  const safeIndices: number[] = [0, 1, 2];
-  for (const i of safeIndices) {
-    const template: CollegeTemplate = SAFE_COLLEGES[i];
-    const prob: number = Math.max(78, Math.min(98, 85 + (totalScore - template.baseScore)));
-    recommendations.push(buildCollege(template, '保底', prob, i));
-  }
-
-  plan.recommendations = recommendations;
-  plan.rushCount = 3;
-  plan.stableCount = 5;
-  plan.safeCount = 3;
+function toVolunteerPlan(d: Record<string, Object>): VolunteerPlan {
+  const plan = new VolunteerPlan();
+  const recs = d['recommendations'] as Record<string, Object>[];
+  plan.recommendations = recs.map((r: Record<string, Object>) => toRecommendCollege(r));
+  plan.rushCount = d['rushCount'] as number;
+  plan.stableCount = d['stableCount'] as number;
+  plan.safeCount = d['safeCount'] as number;
   return plan;
+}
+
+// 将 ScoreInput 实例转为纯 JSON 对象（避免 @Trace 序列化问题）
+function scoreInputToBody(scoreInput: ScoreInput): Record<string, Object> {
+  const subjects: Record<string, Object>[] = scoreInput.subjects.map((s: SubjectScore) => {
+    const obj: Record<string, Object> = {};
+    obj['subject'] = s.subject;
+    obj['score'] = s.score;
+    obj['fullScore'] = s.fullScore;
+    return obj;
+  });
+  const body: Record<string, Object> = {};
+  body['subjects'] = subjects;
+  body['totalScore'] = scoreInput.totalScore;
+  body['province'] = scoreInput.province;
+  return body;
 }
 
 @ObservedV2
@@ -94,41 +57,33 @@ export class VolunteerService {
   @Trace isLoading: boolean = false;
   @Trace hasScore: boolean = false;
 
-  // POST /api/v1/volunteer/match
-  matchVolunteer(scoreInput: ScoreInput): Promise<VolunteerPlan> {
+  /** POST /volunteer/match — 志愿匹配 */
+  async matchVolunteer(scoreInput: ScoreInput): Promise<VolunteerPlan> {
     this.isLoading = true;
     hilog.info(DOMAIN, TAG, 'matchVolunteer: totalScore=%{public}d, province=%{public}s',
       scoreInput.totalScore, scoreInput.province);
-
-    // TODO: 接入真实 FastAPI 接口
-    // return httpClient.post('/volunteer/match', scoreInput).then(...)
-
-    return new Promise<VolunteerPlan>((resolve: (value: VolunteerPlan) => void) => {
-      setTimeout(() => {
-        const plan: VolunteerPlan = generateMockPlan(scoreInput.totalScore);
-        this.currentPlan = plan;
-        this.currentScore = scoreInput;
-        this.hasScore = true;
-        this.isLoading = false;
-        resolve(plan);
-      }, 800);
-    });
+    try {
+      const body = scoreInputToBody(scoreInput);
+      const response: AxiosResponse<Record<string, Object>> = await httpClient.post('/volunteer/match', body);
+      const plan = toVolunteerPlan(response.data);
+      this.currentPlan = plan;
+      this.currentScore = scoreInput;
+      this.hasScore = true;
+      return plan;
+    } finally {
+      this.isLoading = false;
+    }
   }
 
-  // GET /api/v1/volunteer/recommend
-  getRecommendations(totalScore: number, province: string): Promise<RecommendCollege[]> {
+  /** GET /volunteer/recommend — 获取推荐列表 */
+  async getRecommendations(totalScore: number, province: string): Promise<RecommendCollege[]> {
     hilog.info(DOMAIN, TAG, 'getRecommendations: totalScore=%{public}d, province=%{public}s',
       totalScore, province);
-
-    // TODO: 接入真实 FastAPI 接口
-    // return httpClient.get(`/volunteer/recommend?totalScore=${totalScore}&province=${province}`).then(...)
-
-    return new Promise<RecommendCollege[]>((resolve: (value: RecommendCollege[]) => void) => {
-      setTimeout(() => {
-        const plan: VolunteerPlan = generateMockPlan(totalScore);
-        resolve(plan.recommendations);
-      }, 500);
+    const response: AxiosResponse<Record<string, Object>[]> = await httpClient.get('/volunteer/recommend', {
+      params: { totalScore: totalScore, province: province }
     });
+    const rawData: Record<string, Object>[] = response.data;
+    return rawData.map((d: Record<string, Object>) => toRecommendCollege(d));
   }
 
   resetScore(): void {

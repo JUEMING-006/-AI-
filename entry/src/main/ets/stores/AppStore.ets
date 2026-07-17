@@ -5,6 +5,9 @@ export class AppStore {
   @Trace isLoading: boolean = false;
   @Trace isLoggedIn: boolean = false;
   @Trace token: string = '';
+  @Trace userId: string = '';
+  @Trace phone: string = '';
+  @Trace nickname: string = '';
 }
 
 // 连接 AppStorageV2，全局共享应用状态

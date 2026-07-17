@@ -1,102 +1,66 @@
-import { RouteNames, AppColors, TabIcons, TabLabels } from '../common/Constants';
+import { AppColors, TabIcons, TabLabels } from '../common/Constants';
 import { routerMap } from '../router/RouterMap';
-import { AnimConfig } from '../common/AnimationHelper';
 import { HomePage } from '../views/home/HomePage';
 import { CollegePage } from '../views/college/CollegePage';
 import { StudyPlanPage } from '../views/study/StudyPlanPage';
 import { VolunteerPage } from '../views/volunteer/VolunteerPage';
+import { LiquidTabBar } from '../components/LiquidTabBar';
 
-// 主入口页面：Navigation + Tabs 框架
+/**
+ * 🌟 主入口页面 - 液态玻璃风格底部Tab栏
+ * 
+ * 特性：
+ * - 悬浮固定的底部Tab导航栏
+ * - 液态玻璃磨砂质感
+ * - 穿透交互设计
+ * - 适配安全区域
+ */
 @Entry
 @ComponentV2
 struct Index {
   @Provider('pathStack') pathStack: NavPathStack = new NavPathStack();
   @Local currentIndex: number = 0;
-  @Local tabScale: number[] = [1.0, 1.0, 1.0, 1.0];
-  @Local tabOpacity: number[] = [1.0, 1.0, 1.0, 1.0];
+  @Local safeAreaTop: number = 0;
+  @Local safeAreaBottom: number = 0;
 
-  @Builder
-  tabBarBuilder(icon: Resource, label: string, index: number) {
-    Column() {
-      SymbolGlyph(icon)
-        .fontSize(24)
-        .fontColor([index === this.currentIndex ? AppColors.PRIMARY_COLOR : AppColors.TEXT_HINT])
-      Text(label)
-        .fontSize(11)
-        .margin({ top: 2 })
-        .fontColor(index === this.currentIndex ? AppColors.PRIMARY_COLOR : AppColors.TEXT_HINT)
-    }
-    .width('100%')
-    .height('100%')
-    .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center)
-    .backgroundColor(AppColors.CARD_COLOR)
-    .border({ width: { top: 1 }, color: AppColors.DIVIDER_COLOR })
-    .scale({ x: this.tabScale[index], y: this.tabScale[index] })
-    .opacity(this.tabOpacity[index])
-    .onTouch((event: TouchEvent) => {
-      if (event.type === TouchType.Down) {
-        this.getUIContext()?.animateTo({
-          duration: AnimConfig.TAB_PRESS_DURATION,
-          curve: AnimConfig.TAB_PRESS_CURVE,
-        }, () => {
-          const newScale: number[] = [...this.tabScale];
-          newScale[index] = AnimConfig.TAB_PRESS_SCALE;
-          this.tabScale = newScale;
-          const newOpacity: number[] = [...this.tabOpacity];
-          newOpacity[index] = AnimConfig.TAB_PRESS_OPACITY;
-          this.tabOpacity = newOpacity;
-        });
-      } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
-        this.getUIContext()?.animateTo({
-          duration: AnimConfig.TAB_RELEASE_DURATION,
-          curve: AnimConfig.TAB_RELEASE_CURVE,
-        }, () => {
-          const newScale: number[] = [...this.tabScale];
-          newScale[index] = 1.0;
-          this.tabScale = newScale;
-          const newOpacity: number[] = [...this.tabOpacity];
-          newOpacity[index] = 1.0;
-          this.tabOpacity = newOpacity;
-        });
-      }
-    })
+  aboutToAppear(): void {
+    // 获取安全区域高度
+    this.safeAreaTop = AppStorage.get<number>('safeAreaTop') ?? 0;
+    this.safeAreaBottom = AppStorage.get<number>('safeAreaBottom') ?? 0;
   }
 
   build() {
-    Navigation(this.pathStack) {
-      Tabs({ barPosition: BarPosition.End, index: this.currentIndex }) {
-        TabContent() {
+    Stack({ alignContent: Alignment.Bottom }) {
+      // 📱 页面内容区域
+      Navigation(this.pathStack) {
+        // 根据当前 Tab 索引显示对应页面
+        if (this.currentIndex === 0) {
           HomePage()
-        }
-        .tabBar(this.tabBarBuilder(TabIcons.HOME, TabLabels.HOME, 0))
-
-        TabContent() {
+        } else if (this.currentIndex === 1) {
           CollegePage()
-        }
-        .tabBar(this.tabBarBuilder(TabIcons.COLLEGE, TabLabels.COLLEGE, 1))
-
-        TabContent() {
+        } else if (this.currentIndex === 2) {
           StudyPlanPage()
-        }
-        .tabBar(this.tabBarBuilder(TabIcons.STUDY, TabLabels.STUDY, 2))
-
-        TabContent() {
+        } else if (this.currentIndex === 3) {
           VolunteerPage()
         }
-        .tabBar(this.tabBarBuilder(TabIcons.VOLUNTEER, TabLabels.VOLUNTEER, 3))
       }
-      .barHeight(49)
-      .onChange((index: number) => {
-        this.getUIContext()?.animateTo({
-          duration: AnimConfig.TAB_SWITCH_DURATION,
-          curve: AnimConfig.TAB_SWITCH_CURVE,
-        }, () => {
+      .width('100%')
+      .height('100%')
+      .navDestination(routerMap)
+      .hideTitleBar(true)
+      .mode(NavigationMode.Stack)
+      
+      // 🌊 液态玻璃风格底部 Tab 栏
+      LiquidTabBar({
+        currentIndex: this.currentIndex,
+        onTabChange: (index: number) => {
           this.currentIndex = index;
-        });
+        },
+        safeAreaBottom: this.safeAreaBottom
       })
     }
-    .navDestination(routerMap)
-    .hideTitleBar(true)
+    .width('100%')
+    .height('100%')
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 }

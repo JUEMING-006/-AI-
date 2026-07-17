@@ -2,6 +2,7 @@ import { AppColors, PROVINCE_LIST, ButtonStyles } from '../../common/Constants';
 import { Radius } from '../../common/DesignTokens';
 import { AnimConfig } from '../../common/AnimationHelper';
 import { TagSelector } from '../../components/TagSelector';
+import { NavHeader } from '../../components/NavHeader';
 
 // 院校类型选项
 const COLLEGE_TYPE_OPTIONS: string[] = ['全部', '公办', '民办', '职业本科'];
@@ -24,8 +25,11 @@ export struct CollegeFilterPage {
 
   build() {
     NavDestination() {
-      Scroll() {
-        Column() {
+      Column() {
+        NavHeader({ title: '院校筛选' })
+
+        Scroll() {
+          Column() {
           // 省份选择
           Text('选择省份')
             .fontSize(16)
@@ -138,8 +142,12 @@ export struct CollegeFilterPage {
       }
       .layoutWeight(1)
       .scrollBar(BarState.Off)
+      }
+      .width('100%')
+      .height('100%')
     }
-    .title('院校筛选')
+    .hideTitleBar(true)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
   }
 
   private onProvinceSelect(tag: string): void {

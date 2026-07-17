@@ -2,6 +2,7 @@
 export class AppColors {
   // 品牌色
   static readonly PRIMARY_COLOR: string = '#007AFF';       // Apple 蓝
+  static readonly PRIMARY_LIGHT: string = '#E6F2FF';       // 浅蓝背景（Tab选中态）
   static readonly PRIMARY_GRADIENT_END: string = '#5AC8FA'; // 浅蓝（仅极少场景）
   static readonly BACKGROUND_COLOR: string = '#F5F5F7';    // Apple 浅灰底
   static readonly CARD_COLOR: string = '#FFFFFF';
@@ -107,4 +108,28 @@ export class RouteNames {
   static readonly PROGRESS: string = 'Progress';
   static readonly SCORE_INPUT: string = 'ScoreInput';
   static readonly VOLUNTEER_RESULT: string = 'VolunteerResult';
+  static readonly LOGIN: string = 'LoginPage';
+  // 志愿填报新增路由
+  static readonly VOLUNTEER_FORM: string = 'VolunteerForm';
+  static readonly SCORE_LINE: string = 'ScoreLine';
+  static readonly VOLUNTEER_DIAGNOSE: string = 'VolunteerDiagnose';
+  static readonly MAJOR_DETAIL: string = 'MajorDetail';
+  static readonly COLLEGE_VOLUNTEER: string = 'CollegeVolunteer';
+}
+
+// 公开路由（无需登录即可访问）
+export const PUBLIC_ROUTES: string[] = [
+  RouteNames.POLICY_DETAIL,
+];
+
+// 需要登录才能访问的 Tab 索引（1=院校, 2=规划, 3=志愿）
+export const RESTRICTED_TAB_INDICES: number[] = [1, 2, 3];
+
+// 导航参数接口
+export interface CollegeNavParam {
+  collegeName: string;
+}
+
+export interface MajorNavParam {
+  majorName: string;
 }

@@ -3,6 +3,7 @@ import { FontSize, Spacing, Radius, Shadows } from '../../common/DesignTokens';
 import { CollegeInfo, ScoreLine } from '../../models/CollegeModel';
 import { collegeService } from '../../services/CollegeService';
 import { LoadingView } from '../../components/LoadingView';
+import { NavHeader } from '../../components/NavHeader';
 
 // 数值对比行标签（用于判断是否高亮）
 const NUMERIC_ROW_LABELS: string[] = ['最低分', '平均分', '最高分', '招生总人数'];
@@ -27,10 +28,13 @@ export struct CollegeComparePage {
 
   build() {
     NavDestination() {
-      if (this.isLoading) {
-        LoadingView({ message: '加载对比数据...' })
-      } else if (this.compareItems.length > 0) {
-        Scroll() {
+      Column() {
+        NavHeader({ title: '院校对比' })
+
+        if (this.isLoading) {
+          LoadingView({ message: '加载对比数据...' })
+        } else if (this.compareItems.length > 0) {
+          Scroll() {
           Column() {
             // 对比表格
             this.compareTable()
@@ -40,9 +44,13 @@ export struct CollegeComparePage {
         }
         .layoutWeight(1)
         .scrollBar(BarState.Off)
+        }
       }
+      .width('100%')
+      .height('100%')
     }
-    .title('院校对比')
+    .hideTitleBar(true)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
     .onReady((context: NavDestinationContext) => {
       const param: Record<string, Object> | undefined = context.pathInfo.param as Record<string, Object> | undefined;
       if (param !== null && param !== undefined) {

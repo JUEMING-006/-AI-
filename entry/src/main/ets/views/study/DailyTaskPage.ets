@@ -5,6 +5,7 @@ import { DailyTask } from '../../models/StudyPlanModel';
 import { studyService } from '../../services/StudyService';
 import { CommonCard } from '../../components/CommonCard';
 import { LoadingView } from '../../components/LoadingView';
+import { NavHeader } from '../../components/NavHeader';
 
 @ComponentV2
 export struct DailyTaskPage {
@@ -119,6 +120,8 @@ export struct DailyTaskPage {
   build() {
     NavDestination() {
       Column() {
+        NavHeader({ title: `今日任务 · ${this.todayDate}` })
+
         if (this.isLoading) {
           LoadingView({ message: '正在加载今日任务...' })
         } else {
@@ -129,7 +132,8 @@ export struct DailyTaskPage {
       .height('100%')
       .backgroundColor(AppColors.BACKGROUND_COLOR)
     }
-    .title(`今日任务 · ${this.todayDate}`)
+    .hideTitleBar(true)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
   }
 
   @Builder

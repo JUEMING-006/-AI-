@@ -199,6 +199,9 @@ export struct CollegePage {
 
   build() {
     Column() {
+      // 状态栏避让
+      Blank().height(AppStorage.get<number>('safeAreaTop') ?? 0)
+      
       // 搜索栏
       SearchBar({
         placeholder: '搜索院校名称...',
@@ -206,6 +209,7 @@ export struct CollegePage {
           this.onSearch(keyword);
         }
       })
+        .padding({ left: Spacing.LG, right: Spacing.LG, top: Spacing.XS })
 
       // 类型快捷筛选
       TagSelector({
@@ -247,5 +251,6 @@ export struct CollegePage {
     .width('100%')
     .height('100%')
     .backgroundColor(AppColors.BACKGROUND_COLOR)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
   }
 }

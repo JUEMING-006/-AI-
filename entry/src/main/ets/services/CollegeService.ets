@@ -1,96 +1,54 @@
 import { CollegeInfo, ScoreLine, MajorMatch, CollegeFilter } from '../models/CollegeModel';
+import { httpClient } from './HttpClient';
+import type { AxiosResponse } from '@ohos/axios';
+import { hilog } from '@kit.PerformanceAnalysisKit';
 
-// Mock 院校数据
-const MOCK_COLLEGES: CollegeInfo[] = [
-  buildCollege('c001', '广东技术师范大学', '广东', '广州', '公办', '二本',
-    '广州市天河区中山大道西293号', '020-38256888', 'https://www.gpnu.edu.cn'),
-  buildCollege('c002', '广州大学', '广东', '广州', '公办', '一本',
-    '广州市番禺区大学城外环西路230号', '020-39366068', 'https://www.gzhu.edu.cn'),
-  buildCollege('c003', '深圳技术大学', '广东', '深圳', '公办', '二本',
-    '深圳市坪山区兰田路3002号', '0755-23598888', 'https://www.sztu.edu.cn'),
-  buildCollege('c004', '广东白云学院', '广东', '广州', '民办', '二本',
-    '广州市白云区江高镇学苑路1号', '020-36095240', 'https://www.baiyunu.edu.cn'),
-  buildCollege('c005', '广州城市理工学院', '广东', '广州', '民办', '二本',
-    '广州市花都区赤坭镇学府路1号', '020-86719888', 'https://www.gcu.edu.cn'),
-  buildCollege('c006', '深圳职业技术大学', '广东', '深圳', '职业本科', '二本',
-    '深圳市南山区留仙大道7098号', '0755-26731717', 'https://www.szpt.edu.cn'),
-  buildCollege('c007', '广东轻工职业技术大学', '广东', '广州', '职业本科', '二本',
-    '广州市海珠区新港西路152号', '020-61230888', 'https://www.gdqy.edu.cn'),
-  buildCollege('c008', '仲恺农业工程学院', '广东', '广州', '公办', '二本',
-    '广州市海珠区纺织路东沙街24号', '020-89003030', 'https://www.zhku.edu.cn'),
-  buildCollege('c009', '五邑大学', '广东', '江门', '公办', '二本',
-    '江门市蓬江区迎宾大道中99号', '0750-3296888', 'https://www.wyu.edu.cn'),
-  buildCollege('c010', '广州南方学院', '广东', '广州', '民办', '二本',
-    '广州市从化区温泉镇南学院路1号', '020-61787333', 'https://www.nfu.edu.cn'),
-];
+const DOMAIN: number = 0x0001;
+const TAG: string = 'CollegeService';
 
-// Mock 分数线数据
-const MOCK_SCORE_LINES: Map<string, ScoreLine[]> = new Map<string, ScoreLine[]>([
-  ['c001', [
-    buildScoreLine(2025, '计算机科学与技术', 385, 402, 438, 120),
-    buildScoreLine(2025, '软件工程', 378, 395, 425, 90),
-    buildScoreLine(2024, '计算机科学与技术', 372, 390, 420, 110),
-    buildScoreLine(2024, '软件工程', 365, 382, 415, 85),
-    buildScoreLine(2023, '计算机科学与技术', 360, 378, 410, 100),
-  ]],
-  ['c002', [
-    buildScoreLine(2025, '计算机科学与技术', 420, 445, 478, 150),
-    buildScoreLine(2025, '电子信息工程', 410, 432, 465, 130),
-    buildScoreLine(2024, '计算机科学与技术', 408, 430, 462, 140),
-    buildScoreLine(2024, '电子信息工程', 398, 420, 450, 120),
-    buildScoreLine(2023, '计算机科学与技术', 395, 418, 448, 135),
-  ]],
-  ['c003', [
-    buildScoreLine(2025, '物联网工程', 400, 418, 450, 80),
-    buildScoreLine(2025, '智能制造工程', 392, 410, 440, 70),
-    buildScoreLine(2024, '物联网工程', 388, 405, 435, 75),
-    buildScoreLine(2024, '智能制造工程', 380, 398, 428, 65),
-    buildScoreLine(2023, '物联网工程', 375, 392, 420, 60),
-  ]],
-]);
+// ── 请求接口定义 ──
+interface FavoriteRequest {
+  collegeId: string;
+}
 
-// 默认分数线（为没有专属数据的院校使用）
-const DEFAULT_SCORE_LINES: ScoreLine[] = [
-  buildScoreLine(2025, '统招专升本', 330, 355, 400, 200),
-  buildScoreLine(2024, '统招专升本', 320, 345, 390, 180),
-  buildScoreLine(2023, '统招专升本', 310, 335, 380, 170),
-];
+// ── JSON → Model 映射（确保返回 @ObservedV2 实例，@Trace 响应式生效）──
 
-function buildCollege(
-  id: string, name: string, province: string, city: string,
-  type: string, level: string, address: string, phone: string, website: string
-): CollegeInfo {
+function toCollegeInfo(d: Record<string, Object>): CollegeInfo {
   const c = new CollegeInfo();
-  c.id = id;
-  c.name = name;
-  c.province = province;
-  c.city = city;
-  c.type = type;
-  c.level = level;
-  c.address = address;
-  c.phone = phone;
-  c.website = website;
-  c.isFavorite = false;
-  c.logoUrl = '';
+  c.id = d['id'] as string;
+  c.name = d['name'] as string;
+  c.province = d['province'] as string;
+  c.city = d['city'] as string;
+  c.type = d['type'] as string;
+  c.level = d['level'] as string;
+  c.address = d['address'] as string;
+  c.phone = d['phone'] as string;
+  c.website = d['website'] as string;
+  c.isFavorite = d['isFavorite'] as boolean;
+  c.logoUrl = d['logoUrl'] as string;
   return c;
 }
 
-function buildScoreLine(
-  year: number, major: string, minScore: number,
-  avgScore: number, maxScore: number, enrollCount: number
-): ScoreLine {
+function toScoreLine(d: Record<string, Object>): ScoreLine {
   const s = new ScoreLine();
-  s.year = year;
-  s.major = major;
-  s.minScore = minScore;
-  s.avgScore = avgScore;
-  s.maxScore = maxScore;
-  s.enrollCount = enrollCount;
+  s.year = d['year'] as number;
+  s.major = d['major'] as string;
+  s.minScore = d['minScore'] as number;
+  s.avgScore = d['avgScore'] as number;
+  s.maxScore = d['maxScore'] as number;
+  s.enrollCount = d['enrollCount'] as number;
   return s;
 }
 
+function toMajorMatch(d: Record<string, Object>): MajorMatch {
+  const m = new MajorMatch();
+  m.specialtyName = d['specialtyName'] as string;
+  m.matchedMajors = d['matchedMajors'] as string[];
+  return m;
+}
+
 /**
- * 院校库服务 — 预留 FastAPI 接口，暂返回 Mock 数据
+ * 院校库服务 — 调用 FastAPI 后端
  */
 export class CollegeService {
   private static instance: CollegeService;
@@ -102,52 +60,57 @@ export class CollegeService {
     return CollegeService.instance;
   }
 
-  /** GET /api/v1/colleges — 获取院校列表（支持筛选） */
-  getColleges(filter: CollegeFilter): Promise<CollegeInfo[]> {
-    let result: CollegeInfo[] = MOCK_COLLEGES.slice();
+  /** GET /colleges — 获取院校列表（支持筛选） */
+  async getColleges(filter: CollegeFilter): Promise<CollegeInfo[]> {
+    const params: Record<string, string> = {};
     if (filter.province !== '') {
-      result = result.filter((c: CollegeInfo) => c.province === filter.province);
+      params['province'] = filter.province;
     }
     if (filter.type !== '') {
-      result = result.filter((c: CollegeInfo) => c.type === filter.type);
+      params['type'] = filter.type;
     }
     if (filter.keyword !== '') {
-      const kw: string = filter.keyword.toLowerCase();
-      result = result.filter((c: CollegeInfo) => c.name.toLowerCase().includes(kw));
+      params['keyword'] = filter.keyword;
     }
-    return Promise.resolve(result);
+    hilog.info(DOMAIN, TAG, 'getColleges: province=%{public}s type=%{public}s keyword=%{public}s',
+      filter.province, filter.type, filter.keyword);
+    const response: AxiosResponse<Record<string, Object>[]> = await httpClient.get('/colleges', { params: params });
+    const rawData: Record<string, Object>[] = response.data;
+    return rawData.map((d: Record<string, Object>) => toCollegeInfo(d));
   }
 
-  /** GET /api/v1/colleges/{id} — 获取院校详情 */
-  getCollegeDetail(id: string): Promise<CollegeInfo> {
-    const found: CollegeInfo | undefined = MOCK_COLLEGES.find((c: CollegeInfo) => c.id === id);
-    if (found) {
-      return Promise.resolve(found);
+  /** GET /colleges/{id} — 获取院校详情 */
+  async getCollegeDetail(id: string): Promise<CollegeInfo> {
+    hilog.info(DOMAIN, TAG, 'getCollegeDetail: id=%{public}s', id);
+    const response: AxiosResponse<Record<string, Object>> = await httpClient.get(`/colleges/${id}`);
+    return toCollegeInfo(response.data);
+  }
+
+  /** GET /colleges/{id}/score-lines — 获取历年分数线 */
+  async getScoreLines(collegeId: string): Promise<ScoreLine[]> {
+    hilog.info(DOMAIN, TAG, 'getScoreLines: collegeId=%{public}s', collegeId);
+    const response: AxiosResponse<Record<string, Object>[]> = await httpClient.get(`/colleges/${collegeId}/score-lines`);
+    const rawData: Record<string, Object>[] = response.data;
+    return rawData.map((d: Record<string, Object>) => toScoreLine(d));
+  }
+
+  /** GET /majors/match — 专业匹配 */
+  async matchMajors(specialty: string): Promise<MajorMatch> {
+    hilog.info(DOMAIN, TAG, 'matchMajors: specialty=%{public}s', specialty);
+    const response: AxiosResponse<Record<string, Object>> = await httpClient.get('/majors/match', { params: { specialty: specialty } });
+    return toMajorMatch(response.data);
+  }
+
+  /** POST/DELETE /user/favorites — 切换收藏状态 */
+  async toggleFavorite(collegeId: string, isFavorite: boolean): Promise<void> {
+    hilog.info(DOMAIN, TAG, 'toggleFavorite: collegeId=%{public}s isFavorite=%{public}s',
+      collegeId, `${isFavorite}`);
+    const requestBody: FavoriteRequest = { collegeId: collegeId };
+    if (isFavorite) {
+      await httpClient.post('/user/favorites', requestBody);
+    } else {
+      await httpClient.delete('/user/favorites', { data: requestBody });
     }
-    return Promise.reject(new Error(`院校 ${id} 不存在`));
-  }
-
-  /** GET /api/v1/colleges/{id}/score-lines — 获取历年分数线 */
-  getScoreLines(collegeId: string): Promise<ScoreLine[]> {
-    const lines: ScoreLine[] | undefined = MOCK_SCORE_LINES.get(collegeId);
-    return Promise.resolve(lines ?? DEFAULT_SCORE_LINES);
-  }
-
-  /** GET /api/v1/majors/match — 专业匹配 */
-  matchMajors(specialty: string): Promise<MajorMatch> {
-    const match = new MajorMatch();
-    match.specialtyName = specialty;
-    match.matchedMajors = ['计算机科学与技术', '软件工程', '信息管理与信息系统', '数据科学与大数据技术'];
-    return Promise.resolve(match);
-  }
-
-  /** POST/DELETE /api/v1/user/favorites — 切换收藏状态 */
-  toggleFavorite(collegeId: string, isFavorite: boolean): Promise<void> {
-    const found: CollegeInfo | undefined = MOCK_COLLEGES.find((c: CollegeInfo) => c.id === collegeId);
-    if (found) {
-      found.isFavorite = isFavorite;
-    }
-    return Promise.resolve();
   }
 }
 

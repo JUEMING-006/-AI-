@@ -2,8 +2,9 @@ import { AppColors, PROVINCE_LIST } from '../../common/Constants';
 import { AnimConfig } from '../../common/AnimationHelper';
 import { QualificationResult, QualificationCheckData } from '../../models/PolicyModel';
 import { policyService } from '../../services/PolicyService';
+import { NavHeader } from '../../components/NavHeader';
 
-// 资格检测表单页内容组件（NavDestination 由 RouterMap 提供）
+// 资格检测表单页
 @ComponentV2
 export struct QualificationCheckPage {
   @Consumer('pathStack') pathStack: NavPathStack = new NavPathStack();
@@ -72,10 +73,9 @@ export struct QualificationCheckPage {
           .fontSize(15)
           .fontColor(this.selectedProvince === '' ? AppColors.TEXT_HINT : AppColors.TEXT_PRIMARY)
           .layoutWeight(1)
-        Image($r('sys.symbol.chevron_right'))
-          .width(18)
-          .height(18)
-          .fillColor(AppColors.TEXT_HINT)
+        SymbolGlyph($r('sys.symbol.chevron_right'))
+          .fontSize(18)
+          .fontColor([AppColors.TEXT_HINT])
       }
       .width('100%')
       .height(44)
@@ -112,10 +112,9 @@ export struct QualificationCheckPage {
           .fontSize(15)
           .fontColor(AppColors.TEXT_PRIMARY)
           .layoutWeight(1)
-        Image($r('sys.symbol.chevron_right'))
-          .width(18)
-          .height(18)
-          .fillColor(AppColors.TEXT_HINT)
+        SymbolGlyph($r('sys.symbol.chevron_right'))
+          .fontSize(18)
+          .fontColor([AppColors.TEXT_HINT])
       }
       .width('100%')
       .height(44)
@@ -149,10 +148,15 @@ export struct QualificationCheckPage {
       Column() {
         // 结果标识
         Row({ space: 8 }) {
-          Image($r(this.result.isQualified ? 'sys.symbol.checkmark' : 'sys.symbol.xmark'))
-            .width(24)
-            .height(24)
-            .fillColor(this.result.isQualified ? AppColors.SUCCESS_COLOR : AppColors.ERROR_COLOR)
+          if (this.result.isQualified) {
+            SymbolGlyph($r('sys.symbol.checkmark'))
+              .fontSize(24)
+              .fontColor([AppColors.SUCCESS_COLOR])
+          } else {
+            SymbolGlyph($r('sys.symbol.xmark'))
+              .fontSize(24)
+              .fontColor([AppColors.ERROR_COLOR])
+          }
           Text(this.result.isQualified ? '符合条件' : '不符合条件')
             .fontSize(18)
             .fontWeight(FontWeight.Bold)
@@ -204,117 +208,127 @@ export struct QualificationCheckPage {
   }
 
   build() {
-    Scroll() {
+    NavDestination() {
       Column() {
-        // 页面说明
-        Text('填写以下信息，检测您是否符合专升本报考条件')
-          .fontSize(14)
-          .fontColor(AppColors.TEXT_SECONDARY)
-          .width('100%')
-          .margin({ bottom: 20 })
+        NavHeader({ title: '报考资格检查' })
 
-        // 表单区域
-        Column({ space: 16 }) {
-          // 省份选择
-          this.provinceSelector()
-
-          // 专科专业
+        Scroll() {
           Column() {
-            this.formLabel('专科专业')
-            TextInput({ text: this.specialty, placeholder: '请输入您的专科专业名称' })
-              .fontSize(15)
-              .placeholderColor(AppColors.TEXT_HINT)
-              .height(44)
-              .backgroundColor(AppColors.BACKGROUND_COLOR)
-              .borderRadius(8)
-              .border({ width: { bottom: 2 }, color: this.specialtyFocused ? AppColors.PRIMARY_COLOR : Color.Transparent })
-              .onChange((value: string) => {
-                this.specialty = value;
-              })
-              .onFocus(() => {
-                this.getUIContext()?.animateTo({ duration: AnimConfig.FOCUS_ANIM_DURATION }, () => {
-                  this.specialtyFocused = true;
-                });
-              })
-              .onBlur(() => {
-                this.getUIContext()?.animateTo({ duration: AnimConfig.FOCUS_ANIM_DURATION }, () => {
-                  this.specialtyFocused = false;
-                });
-              })
+          // 页面说明
+          Text('填写以下信息，检测您是否符合专升本报考条件')
+            .fontSize(14)
+            .fontColor(AppColors.TEXT_SECONDARY)
+            .width('100%')
+            .margin({ bottom: 20 })
+
+          // 表单区域
+          Column({ space: 16 }) {
+            // 省份选择
+            this.provinceSelector()
+
+            // 专科专业
+            Column() {
+              this.formLabel('专科专业')
+              TextInput({ text: this.specialty, placeholder: '请输入您的专科专业名称' })
+                .fontSize(15)
+                .placeholderColor(AppColors.TEXT_HINT)
+                .height(44)
+                .backgroundColor(AppColors.BACKGROUND_COLOR)
+                .borderRadius(8)
+                .border({ width: { bottom: 2 }, color: this.specialtyFocused ? AppColors.PRIMARY_COLOR : Color.Transparent })
+                .onChange((value: string) => {
+                  this.specialty = value;
+                })
+                .onFocus(() => {
+                  this.getUIContext()?.animateTo({ duration: AnimConfig.FOCUS_ANIM_DURATION }, () => {
+                    this.specialtyFocused = true;
+                  });
+                })
+                .onBlur(() => {
+                  this.getUIContext()?.animateTo({ duration: AnimConfig.FOCUS_ANIM_DURATION }, () => {
+                    this.specialtyFocused = false;
+                  });
+                })
+            }
+            .width('100%')
+
+            // 年级选择
+            this.gradeSelector()
+
+            // 户籍所在地
+            Column() {
+              this.formLabel('户籍所在地')
+              TextInput({ text: this.household, placeholder: '请输入户籍所在地（如：广东省广州市）' })
+                .fontSize(15)
+                .placeholderColor(AppColors.TEXT_HINT)
+                .height(44)
+                .backgroundColor(AppColors.BACKGROUND_COLOR)
+                .borderRadius(8)
+                .border({ width: { bottom: 2 }, color: this.householdFocused ? AppColors.PRIMARY_COLOR : Color.Transparent })
+                .onChange((value: string) => {
+                  this.household = value;
+                })
+                .onFocus(() => {
+                  this.getUIContext()?.animateTo({ duration: AnimConfig.FOCUS_ANIM_DURATION }, () => {
+                    this.householdFocused = true;
+                  });
+                })
+                .onBlur(() => {
+                  this.getUIContext()?.animateTo({ duration: AnimConfig.FOCUS_ANIM_DURATION }, () => {
+                    this.householdFocused = false;
+                  });
+                })
+            }
+            .width('100%')
           }
           .width('100%')
+          .padding(16)
+          .backgroundColor(AppColors.CARD_COLOR)
+          .borderRadius(12)
 
-          // 年级选择
-          this.gradeSelector()
+          // 提交按钮
+          Button(this.isChecking ? '检测中...' : '开始检测')
+            .width('100%')
+            .height(48)
+            .fontSize(16)
+            .fontWeight(FontWeight.Medium)
+            .fontColor('#FFFFFF')
+            .backgroundColor(AppColors.PRIMARY_COLOR)
+            .borderRadius(12)
+            .margin({ top: 24 })
+            .enabled(!this.isChecking)
+            .opacity(this.isChecking ? 0.6 : (this.isSubmitPressed ? AnimConfig.BUTTON_PRESS_OPACITY : 1.0))
+            .scale({ x: this.isSubmitPressed ? AnimConfig.BUTTON_PRESS_SCALE : 1.0, y: this.isSubmitPressed ? AnimConfig.BUTTON_PRESS_SCALE : 1.0 })
+            .onTouch((event: TouchEvent) => {
+              if (event.type === TouchType.Down) {
+                this.getUIContext()?.animateTo({ duration: AnimConfig.BUTTON_PRESS_DURATION, curve: AnimConfig.BUTTON_PRESS_CURVE }, () => {
+                  this.isSubmitPressed = true;
+                });
+              } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
+                this.getUIContext()?.animateTo({ duration: AnimConfig.BUTTON_RELEASE_DURATION, curve: AnimConfig.BUTTON_RELEASE_CURVE }, () => {
+                  this.isSubmitPressed = false;
+                });
+              }
+            })
+            .onClick(() => {
+              this.submitCheck();
+            })
 
-          // 户籍所在地
-          Column() {
-            this.formLabel('户籍所在地')
-            TextInput({ text: this.household, placeholder: '请输入户籍所在地（如：广东省广州市）' })
-              .fontSize(15)
-              .placeholderColor(AppColors.TEXT_HINT)
-              .height(44)
-              .backgroundColor(AppColors.BACKGROUND_COLOR)
-              .borderRadius(8)
-              .border({ width: { bottom: 2 }, color: this.householdFocused ? AppColors.PRIMARY_COLOR : Color.Transparent })
-              .onChange((value: string) => {
-                this.household = value;
-              })
-              .onFocus(() => {
-                this.getUIContext()?.animateTo({ duration: AnimConfig.FOCUS_ANIM_DURATION }, () => {
-                  this.householdFocused = true;
-                });
-              })
-              .onBlur(() => {
-                this.getUIContext()?.animateTo({ duration: AnimConfig.FOCUS_ANIM_DURATION }, () => {
-                  this.householdFocused = false;
-                });
-              })
-          }
-          .width('100%')
+          // 检测结果
+          this.resultSection()
         }
         .width('100%')
-        .padding(16)
-        .backgroundColor(AppColors.CARD_COLOR)
-        .borderRadius(12)
-
-        // 提交按钮
-        Button(this.isChecking ? '检测中...' : '开始检测')
-          .width('100%')
-          .height(48)
-          .fontSize(16)
-          .fontWeight(FontWeight.Medium)
-          .fontColor('#FFFFFF')
-          .backgroundColor(AppColors.PRIMARY_COLOR)
-          .borderRadius(12)
-          .margin({ top: 24 })
-          .enabled(!this.isChecking)
-          .opacity(this.isChecking ? 0.6 : (this.isSubmitPressed ? AnimConfig.BUTTON_PRESS_OPACITY : 1.0))
-          .scale({ x: this.isSubmitPressed ? AnimConfig.BUTTON_PRESS_SCALE : 1.0, y: this.isSubmitPressed ? AnimConfig.BUTTON_PRESS_SCALE : 1.0 })
-          .onTouch((event: TouchEvent) => {
-            if (event.type === TouchType.Down) {
-              this.getUIContext()?.animateTo({ duration: AnimConfig.BUTTON_PRESS_DURATION, curve: AnimConfig.BUTTON_PRESS_CURVE }, () => {
-                this.isSubmitPressed = true;
-              });
-            } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
-              this.getUIContext()?.animateTo({ duration: AnimConfig.BUTTON_RELEASE_DURATION, curve: AnimConfig.BUTTON_RELEASE_CURVE }, () => {
-                this.isSubmitPressed = false;
-              });
-            }
-          })
-          .onClick(() => {
-            this.submitCheck();
-          })
-
-        // 检测结果
-        this.resultSection()
+        .padding({ left: 16, right: 16, top: 16, bottom: 24 })
       }
       .width('100%')
-      .padding({ left: 16, right: 16, top: 16, bottom: 24 })
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
+      .backgroundColor(AppColors.BACKGROUND_COLOR)
+      }
+      .width('100%')
+      .height('100%')
     }
-    .width('100%')
-    .height('100%')
-    .scrollBar(BarState.Off)
-    .backgroundColor(AppColors.BACKGROUND_COLOR)
+    .hideTitleBar(true)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
   }
 }

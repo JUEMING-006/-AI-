@@ -1,4 +1,5 @@
-import { AppColors, RouteNames, QuickEntryIcons } from '../../common/Constants';
+import { AppColors, RouteNames, QuickEntryIcons, PUBLIC_ROUTES } from '../../common/Constants';
+import { appStore } from '../../stores/AppStore';
 import { PolicyInfo } from '../../models/PolicyModel';
 import { policyService } from '../../services/PolicyService';
 import { FontSize, FontWeightTokens, Spacing, Radius, Shadows, GlassEffect } from '../../common/DesignTokens';
@@ -10,7 +11,7 @@ interface QuickEntry {
   label: string;
   icon: Resource;
   route: string;
-  bgColor: string; // 图标圆形背景色
+  color: string;
 }
 
 // 升本价值卡片数据
@@ -21,60 +22,67 @@ interface ValueCard {
   color: string;
 }
 
-// 快捷入口组件（液态按压反馈 + 彩色图标背景）
+/**
+ * 🌟 侧边快捷入口组件 - 小巧精致的液态玻璃卡片
+ * - 固定在屏幕左侧
+ * - 与边缘藕断丝连的液态玻璃效果
+ * - 垂直排列的小卡片
+ */
 @ComponentV2
-struct QuickEntryItem {
+struct SideQuickEntry {
   @Param label: string = '';
   @Param icon: Resource = $r('sys.symbol.plus');
   @Param route: string = '';
-  @Param bgColor: string = '#F0F0F5';
+  @Param color: string = AppColors.PRIMARY_COLOR;
   @Param onTap: (route: string) => void = () => {};
   @Local pressScale: number = 1.0;
-  @Local pressOpacity: number = 1.0;
 
   build() {
     Column() {
-      // 彩色圆形图标背景
-      Column() {
-        SymbolGlyph(this.icon)
-          .fontSize(22)
-          .fontColor([Color.White])
-      }
-      .width(44)
-      .height(44)
-      .borderRadius(22)
-      .backgroundColor(this.bgColor)
-      .justifyContent(FlexAlign.Center)
-      .alignItems(HorizontalAlign.Center)
+      // 图标
+      SymbolGlyph(this.icon)
+        .fontSize(20)
+        .fontColor([this.color])
 
+      // 文字
       Text(this.label)
-        .fontSize(FontSize.CAPTION)
+        .fontSize(9)
         .fontColor(AppColors.TEXT_PRIMARY)
-        .margin({ top: Spacing.SM })
+        .margin({ top: 4 })
         .maxLines(1)
     }
-    .width('100%')
+    .width('100%') // 宽度撑满父容器
+    .height(56)
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
-    .padding({ top: Spacing.MD, bottom: Spacing.MD })
+    .padding(4)
+    // 🌊 液态玻璃卡片 — 透明 + 微弱模糊折射
+    .backgroundEffect({
+      radius: 3,
+      saturation: 1.6,
+      brightness: 1.05,
+      color: '#0AFFFFFF'
+    })
+    .borderRadius(Radius.LG)
+    .border({
+      width: 0.5,
+      color: '#40FFFFFF'
+    })
     .scale({ x: this.pressScale, y: this.pressScale })
-    .opacity(this.pressOpacity)
     .onTouch((event: TouchEvent) => {
       if (event.type === TouchType.Down) {
         this.getUIContext()?.animateTo({
-          duration: AnimConfig.BUTTON_PRESS_DURATION,
-          curve: AnimConfig.BUTTON_PRESS_CURVE,
+          duration: 150,
+          curve: Curve.EaseOut,
         }, () => {
-          this.pressScale = AnimConfig.BUTTON_PRESS_SCALE;
-          this.pressOpacity = AnimConfig.BUTTON_PRESS_OPACITY;
+          this.pressScale = 0.92;
         });
       } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
         this.getUIContext()?.animateTo({
-          duration: AnimConfig.BUTTON_RELEASE_DURATION,
-          curve: AnimConfig.BUTTON_RELEASE_CURVE,
+          duration: 200,
+          curve: Curve.EaseOut,
         }, () => {
           this.pressScale = 1.0;
-          this.pressOpacity = 1.0;
         });
       }
     })
@@ -153,17 +161,16 @@ export struct HomePage {
   @Local isLoading: boolean = true;
   @Local daysRemaining: number = 0;
 
+  // 🌟 所有快捷入口集中在左侧（8个功能）
   private quickEntries: QuickEntry[] = [
-    // 第一行：高频核心功能（学习 + 备考）
-    { label: '学习规划', icon: QuickEntryIcons.PLANNING, route: RouteNames.STUDY_PLAN, bgColor: '#007AFF' },
-    { label: '每日任务', icon: QuickEntryIcons.TASK, route: RouteNames.DAILY_TASK, bgColor: '#5856D6' },
-    { label: '院校推荐', icon: QuickEntryIcons.RECOMMENDATION, route: RouteNames.COLLEGE_DETAIL, bgColor: '#FF9500' },
-    { label: '志愿填报', icon: QuickEntryIcons.VOLUNTEER, route: RouteNames.VOLUNTEER_RESULT, bgColor: '#34C759' },
-    // 第二行：辅助工具功能
-    { label: '政策资讯', icon: QuickEntryIcons.POLICY, route: RouteNames.POLICY_DETAIL, bgColor: '#8E8E93' },
-    { label: '资格检测', icon: QuickEntryIcons.QUALIFICATION, route: RouteNames.QUALIFICATION_CHECK, bgColor: '#30B0C7' },
-    { label: '专业对照', icon: QuickEntryIcons.COMPARISON, route: RouteNames.COLLEGE_FILTER, bgColor: '#AF52DE' },
-    { label: 'AI问答', icon: QuickEntryIcons.AI, route: '', bgColor: '#FF3B30' }
+    { label: '学习规划', icon: QuickEntryIcons.PLANNING, route: RouteNames.STUDY_PLAN, color: '#007AFF' },
+    { label: '每日任务', icon: QuickEntryIcons.TASK, route: RouteNames.DAILY_TASK, color: '#5856D6' },
+    { label: '院校推荐', icon: QuickEntryIcons.RECOMMENDATION, route: RouteNames.COLLEGE_DETAIL, color: '#FF9500' },
+    { label: '志愿填报', icon: QuickEntryIcons.VOLUNTEER, route: RouteNames.VOLUNTEER_RESULT, color: '#34C759' },
+    { label: '政策资讯', icon: QuickEntryIcons.POLICY, route: RouteNames.POLICY_DETAIL, color: '#8E8E93' },
+    { label: '资格检测', icon: QuickEntryIcons.QUALIFICATION, route: RouteNames.QUALIFICATION_CHECK, color: '#30B0C7' },
+    { label: '专业对照', icon: QuickEntryIcons.COMPARISON, route: RouteNames.COLLEGE_FILTER, color: '#AF52DE' },
+    { label: 'AI问答', icon: QuickEntryIcons.AI, route: '', color: '#FF3B30' }
   ];
 
   private valueCards: ValueCard[] = [
@@ -220,166 +227,150 @@ export struct HomePage {
     return AppColors.WARNING_COLOR;
   }
 
-  // 快捷入口网格
+  /**
+   * 🌟 左侧快捷入口栏 - 固定在左边，与边缘藕断丝连
+   */
   @Builder
-  quickEntryGrid() {
-    Grid() {
-      ForEach(this.quickEntries, (entry: QuickEntry) => {
-        GridItem() {
-          QuickEntryItem({
-            label: entry.label,
-            icon: entry.icon,
-            route: entry.route,
-            bgColor: entry.bgColor,
-            onTap: (route: string) => {
-              if (route !== '') {
-                this.pathStack.pushPath({ name: route });
-              }
+  leftSideBar() {
+    Column() {
+      ForEach(this.quickEntries, (entry: QuickEntry, index: number) => {
+        SideQuickEntry({
+          label: entry.label,
+          icon: entry.icon,
+          route: entry.route,
+          color: entry.color,
+          onTap: (route: string) => {
+            if (route === '') {
+              return;
             }
-          })
-        }
+            if (!appStore.isLoggedIn && !PUBLIC_ROUTES.includes(route)) {
+              this.pathStack.pushPath({ name: RouteNames.LOGIN });
+              return;
+            }
+            this.pathStack.pushPath({ name: route });
+          }
+        })
+        .margin({ top: index === 0 ? 0 : Spacing.SM })
       })
     }
-    .columnsTemplate('1fr 1fr 1fr 1fr')
-    .rowsTemplate('1fr 1fr')
-    .width('100%')
-    .height(180)
-    .rowsGap(4)
-    .padding({ top: Spacing.SM, bottom: Spacing.SM })
-    .borderRadius(Radius.CARD_LG)
-    .backgroundColor(AppColors.CARD_COLOR)
-    .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
-    .border({ width: GlassEffect.BORDER_WIDTH, color: AppColors.GLASS_BORDER })
+    .width('100%') // 宽度撑满容器
+    .padding({ top: 8, bottom: 8, left: 4, right: 4 })
+    // 🌊 液态玻璃 — 透明 + 微弱模糊折射
+    .backgroundEffect({
+      radius: 4,
+      saturation: 2.0,
+      brightness: 1.1,
+      color: '#08FFFFFF'
+    })
+    .borderRadius({ topRight: Radius.XL, bottomRight: Radius.XL })
+    .border({
+      width: 0.5,
+      color: '#4DFFFFFF'
+    })
+    .shadow({
+      radius: 12,
+      color: 'rgba(0, 0, 0, 0.06)',
+      offsetX: 2,
+      offsetY: 0
+    })
   }
 
-  // 政策卡片已提取为 PolicyCardItem 组件（液态玻璃 + 按压反馈）
-
-  // 升本价值轮播卡片
+  /**
+   * 🌟 中间主内容区域
+   */
   @Builder
-  valueSwiper() {
-    Swiper() {
-      ForEach(this.valueCards, (card: ValueCard) => {
-        Column({ space: Spacing.SM }) {
-          Text(card.title)
-            .fontSize(FontSize.CAPTION)
-            .fontColor(AppColors.TEXT_SECONDARY)
-          Text(card.value)
-            .fontSize(28)
-            .fontWeight(FontWeightTokens.BOLD)
-            .fontColor(card.color)
-          Text(card.desc)
-            .fontSize(FontSize.BODY)
-            .fontColor(AppColors.TEXT_SECONDARY)
-            .maxLines(2)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-        }
-        .width('100%')
-        .height(140)
-        .padding(Spacing.XL)
-        .alignItems(HorizontalAlign.Start)
-        .borderRadius(Radius.LG)
-        .backgroundColor(AppColors.GLASS_LIGHT)
-        .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
-        .border({ width: GlassEffect.BORDER_WIDTH, color: AppColors.GLASS_BORDER })
-        .shadow(Shadows.GLASS)
-      })
-    }
-    .width('100%')
-    .height(140)
-    .indicator(Indicator.dot()
-      .color('#D0D0D0')
-      .selectedColor(AppColors.PRIMARY_COLOR))
-    .loop(true)
-    .autoPlay(false)
-  }
-
-  build() {
+  mainContent() {
     Scroll() {
       Column() {
-        // 顶部标题区域 — Logo + 应用名称
+        // 🌟 紧凑的标题 + 倒计时
         Column() {
           Row() {
-            // Logo 图标
-            Column() {
+            // Logo + 标题
+            Row() {
               Text('🎓')
-                .fontSize(32)
-            }
-            .width(48)
-            .height(48)
-            .justifyContent(FlexAlign.Center)
-            .alignItems(HorizontalAlign.Center)
+                .fontSize(24)
 
-            // 标题文字
-            Column({ space: 2 }) {
-              Text('升本智图')
+              Column({ space: 2 }) {
+                Text('鸿蒙AI指导者')
+                  .fontSize(20)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor(AppColors.TEXT_PRIMARY)
+
+                Text('智能升本助手')
+                  .fontSize(11)
+                  .fontColor(AppColors.TEXT_SECONDARY)
+              }
+              .alignItems(HorizontalAlign.Start)
+              .margin({ left: 8 })
+            }
+            .layoutWeight(1)
+
+            // 倒计时
+            Column() {
+              Text(`${this.daysRemaining}`)
                 .fontSize(28)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(Color.White)
+                .fontColor(AppColors.PRIMARY_COLOR)
 
-              Text('您的智能升本助手 · 精准规划每一步')
-                .fontSize(13)
-                .fontColor('#80FFFFFF')
+              Text('天')
+                .fontSize(12)
+                .fontColor(AppColors.TEXT_SECONDARY)
             }
-            .alignItems(HorizontalAlign.Start)
-            .justifyContent(FlexAlign.Center)
-            .layoutWeight(1)
+            .alignItems(HorizontalAlign.End)
           }
           .width('100%')
-          .justifyContent(FlexAlign.Start)
-          .alignItems(VerticalAlign.Center)
+          .padding({ left: 44, right: Spacing.LG })
         }
         .width('100%')
-        .padding({ top: Spacing.XL, left: Spacing.LG, right: Spacing.LG, bottom: Spacing.MD })
+        .margin({ bottom: Spacing.LG })
 
-        // 倒计时区域
-        Column() {
-          Row() {
-            Text(`${this.daysRemaining}`)
-              .fontSize(FontSize.DISPLAY)
-              .fontWeight(FontWeight.Lighter)
-              .fontColor(AppColors.PRIMARY_COLOR)
-            Text('天')
-              .fontSize(FontSize.TITLE)
-              .fontColor(AppColors.TEXT_SECONDARY)
-              .margin({ left: Spacing.XS, bottom: 4 })
-              .alignSelf(ItemAlign.End)
-          }
-          .alignItems(VerticalAlign.Bottom)
-          .margin({ top: Spacing.XS })
-
-          Text('距离专升本考试 · ' + this.examDate)
-            .fontSize(FontSize.CAPTION)
-            .fontColor(AppColors.TEXT_HINT)
-        }
-        .width('100%')
-        .padding({ top: Spacing.XL, bottom: Spacing.LG, left: Spacing.LG, right: Spacing.LG })
-        .linearGradient({
-          direction: GradientDirection.Bottom,
-          colors: [['#14007AFF', 0.0], ['#00007AFF', 1.0]]
-        })
-
-        // 快捷入口
-        Column() {
-          this.quickEntryGrid()
-        }
-        .width('100%')
-        .padding({ left: Spacing.LG, right: Spacing.LG })
-        .margin({ top: Spacing.LG })
-
-        // 升本价值轮播
+        // 🌟 升本价值轮播
         Column() {
           Text('升本价值')
             .fontSize(FontSize.TITLE)
             .fontWeight(FontWeightTokens.MEDIUM)
             .fontColor(AppColors.TEXT_PRIMARY)
             .margin({ bottom: Spacing.MD })
-          this.valueSwiper()
+
+          Swiper() {
+            ForEach(this.valueCards, (card: ValueCard) => {
+              Column({ space: Spacing.SM }) {
+                Text(card.title)
+                  .fontSize(FontSize.CAPTION)
+                  .fontColor(AppColors.TEXT_SECONDARY)
+                Text(card.value)
+                  .fontSize(28)
+                  .fontWeight(FontWeightTokens.BOLD)
+                  .fontColor(card.color)
+                Text(card.desc)
+                  .fontSize(FontSize.BODY)
+                  .fontColor(AppColors.TEXT_SECONDARY)
+                  .maxLines(2)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+              }
+              .width('100%')
+              .height(140)
+              .padding(Spacing.XL)
+              .alignItems(HorizontalAlign.Start)
+              .borderRadius(Radius.LG)
+              .backgroundColor(AppColors.GLASS_LIGHT)
+              .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
+              .border({ width: GlassEffect.BORDER_WIDTH, color: AppColors.GLASS_BORDER })
+              .shadow(Shadows.GLASS)
+            })
+          }
+          .width('100%')
+          .height(140)
+          .indicator(Indicator.dot()
+            .color('#D0D0D0')
+            .selectedColor(AppColors.PRIMARY_COLOR))
+          .loop(true)
+          .autoPlay(false)
         }
         .width('100%')
-        .padding({ left: Spacing.LG, right: Spacing.LG })
-        .margin({ top: Spacing.SECTION })
+        .margin({ bottom: Spacing.SECTION })
 
-        // 最新政策列表
+        // 🌟 最新政策列表
         Column() {
           Row() {
             Text('最新政策')
@@ -410,17 +401,43 @@ export struct HomePage {
           }, (policy: PolicyInfo) => policy.id)
         }
         .width('100%')
-        .padding({ left: Spacing.LG, right: Spacing.LG })
-        .margin({ top: Spacing.SECTION })
 
-        // 底部留白
-        Blank().height(Spacing.XXL)
+        // 底部留白（为悬浮Tab栏留空间）
+        Blank().height(80)
       }
       .width('100%')
+      .padding({ top: 8, left: Spacing.LG, right: Spacing.LG, bottom: Spacing.LG })
     }
     .width('100%')
     .height('100%')
     .scrollBar(BarState.Off)
-    .backgroundColor(AppColors.BACKGROUND_COLOR)
+  }
+
+  build() {
+    Stack({ alignContent: Alignment.TopStart }) {
+      // 🌟 底层：背景
+      Column()
+        .width('100%')
+        .height('100%')
+        .backgroundColor(AppColors.BACKGROUND_COLOR)
+
+      // 🌟 中间层：主内容
+      Column() {
+        this.mainContent()
+      }
+      .width('100%')
+      .height('100%')
+
+      // 🌟 顶层：左侧栏（垂直居中）
+      Column() {
+        this.leftSideBar()
+      }
+      .width(60) // 左侧栏宽度
+      .height('100%')
+      .alignItems(HorizontalAlign.Start)
+      .justifyContent(FlexAlign.Center)
+    }
+    .width('100%')
+    .height('100%')
   }
 }

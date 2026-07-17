@@ -5,6 +5,7 @@ import { StudyProgress } from '../../models/StudyPlanModel';
 import { studyService } from '../../services/StudyService';
 import { CommonCard } from '../../components/CommonCard';
 import { LoadingView } from '../../components/LoadingView';
+import { NavHeader } from '../../components/NavHeader';
 
 const BAR_MAX_HEIGHT: number = 120;
 
@@ -66,6 +67,8 @@ export struct ProgressPage {
   build() {
     NavDestination() {
       Column() {
+        NavHeader({ title: '学习进度' })
+
         if (this.isLoading) {
           LoadingView({ message: '正在加载学习进度...' })
         } else {
@@ -84,7 +87,8 @@ export struct ProgressPage {
       .height('100%')
       .backgroundColor(AppColors.BACKGROUND_COLOR)
     }
-    .title('学习进度')
+    .hideTitleBar(true)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
   }
 
   @Builder

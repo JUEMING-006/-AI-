@@ -4,6 +4,7 @@ import { AnimConfig } from '../../common/AnimationHelper';
 import { CollegeInfo, ScoreLine } from '../../models/CollegeModel';
 import { collegeService } from '../../services/CollegeService';
 import { LoadingView } from '../../components/LoadingView';
+import { NavHeader } from '../../components/NavHeader';
 
 // 路由参数接口
 interface CollegeDetailParam {
@@ -64,10 +65,13 @@ export struct CollegeDetailPage {
 
   build() {
     NavDestination() {
-      if (this.isLoading) {
-        LoadingView({ message: '加载院校详情...' })
-      } else if (this.college !== null) {
-        Scroll() {
+      Column() {
+        NavHeader({ title: '院校详情' })
+
+        if (this.isLoading) {
+          LoadingView({ message: '加载院校详情...' })
+        } else if (this.college !== null) {
+          Scroll() {
           Column() {
             // 院校基本信息卡片
             this.infoSection()
@@ -85,9 +89,13 @@ export struct CollegeDetailPage {
         }
         .layoutWeight(1)
         .scrollBar(BarState.Off)
+        }
       }
+      .width('100%')
+      .height('100%')
     }
-    .title('院校详情')
+    .hideTitleBar(true)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
     .onReady((context: NavDestinationContext) => {
       const param: Record<string, Object> | undefined = context.pathInfo.param as Record<string, Object> | undefined;
       if (param !== null && param !== undefined) {

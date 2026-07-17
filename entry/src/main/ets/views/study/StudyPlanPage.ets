@@ -55,6 +55,9 @@ export struct StudyPlanPage {
 
   build() {
     Column() {
+      // 状态栏安全区避让
+      Blank().height(AppStorage.get<number>('safeAreaTop') ?? 0)
+
       if (this.isLoading) {
         LoadingView({ message: '正在生成学习规划...' })
       } else {
@@ -72,6 +75,7 @@ export struct StudyPlanPage {
     .width('100%')
     .height('100%')
     .backgroundColor(AppColors.BACKGROUND_COLOR)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
   }
 
   @Builder
