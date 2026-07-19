@@ -1,9 +1,9 @@
-// 应用颜色常量 — Apple 风格单色系
+// 应用颜色常量 — 对标Kimi官方配色（黑白灰 + 品牌蓝 #0066FF）
 export class AppColors {
-  // 品牌色
-  static readonly PRIMARY_COLOR: string = '#007AFF';       // Apple 蓝
-  static readonly PRIMARY_LIGHT: string = '#E6F2FF';       // 浅蓝背景（Tab选中态）
-  static readonly PRIMARY_GRADIENT_END: string = '#5AC8FA'; // 浅蓝（仅极少场景）
+  // 品牌色 — 纯蓝 #0066FF（对标Kimi官方配色）
+  static readonly PRIMARY_COLOR: string = '#0066FF';        // 品牌蓝（Kimi标准）
+  static readonly PRIMARY_LIGHT: string = '#E3F2FD';        // 淡蓝背景（选中态）
+  static readonly PRIMARY_GRADIENT_END: string = '#0066FF'; // 同品牌蓝（无渐变）
   static readonly BACKGROUND_COLOR: string = '#F5F5F7';    // Apple 浅灰底
   static readonly CARD_COLOR: string = '#FFFFFF';
   static readonly TEXT_PRIMARY: string = '#1D1D1F';
@@ -18,6 +18,7 @@ export class AppColors {
   static readonly BLUR_BG: string = '#F2F2F7';             // 毛玻璃半透浅灰
 
   // 液态玻璃材质色 (Liquid Glass)
+  static readonly GLASS_XLIGHT: string = '#F5FFFFFF';      // 极浅玻璃（标题栏、导航栏）
   static readonly GLASS_LIGHT: string = '#E8FFFFFF';       // 浅色玻璃（高透明白）
   static readonly GLASS_MEDIUM: string = '#CCFFFFFF';      // 中等玻璃
   static readonly GLASS_DARK: string = '#99F5F5F7';        // 深色玻璃
@@ -28,16 +29,36 @@ export class AppColors {
   static readonly TIER_RUSH: string = '#FF6B6B';
   static readonly TIER_STABLE: string = '#10B981';
   static readonly TIER_SAFE: string = '#0056CC';           // 保底色：稳重深蓝
+
+  // 月之亮面色系（浅色模式）— 对标Kimi官方配色
+  static readonly MOON_LIGHT_BG_PAGE: string = '#FFFFFF';       // 页面背景
+  static readonly MOON_LIGHT_BG_CONTENT: string = '#F5F5F5';    // 内容区背景
+  static readonly MOON_LIGHT_AI_REPLY_BG: string = '#E8E8E8';   // AI回复容器背景
+  static readonly MOON_LIGHT_TEXT_PRIMARY: string = '#212121';  // 主文字
+  static readonly MOON_LIGHT_TEXT_SECONDARY: string = '#666666';// 次级文字
+  static readonly MOON_LIGHT_TEXT_HINT: string = '#999999';     // 辅助文字
+  static readonly MOON_LIGHT_DIVIDER: string = '#E0E0E0';       // 分隔线
+  static readonly MOON_LIGHT_INPUT_BG: string = '#F5F5F5';      // 输入框背景
+
+  // 月之暗面色系（深色模式）— 对标Kimi官方配色
+  static readonly MOON_DARK_BG_PAGE: string = '#121212';        // 页面背景
+  static readonly MOON_DARK_BG_CONTENT: string = '#1F1F1F';     // 内容区背景
+  static readonly MOON_DARK_AI_REPLY_BG: string = '#2A2A2A';    // AI回复容器背景
+  static readonly MOON_DARK_TEXT_PRIMARY: string = '#FFFFFF';   // 主文字
+  static readonly MOON_DARK_TEXT_SECONDARY: string = '#AAAAAA'; // 次级文字
+  static readonly MOON_DARK_TEXT_HINT: string = '#666666';      // 辅助文字
+  static readonly MOON_DARK_DIVIDER: string = '#333333';        // 分隔线
+  static readonly MOON_DARK_INPUT_BG: string = '#2A2A2A';       // 输入框背景
 }
 
 // 按钮风格常量
 export class ButtonStyles {
-  static readonly PRIMARY_BTN_BG: string = '#007AFF';        // 主按钮背景（品牌色）
+  static readonly PRIMARY_BTN_BG: string = '#0066FF';        // 主按钮背景（品牌蓝）
   static readonly PRIMARY_BTN_TEXT: string = '#FFFFFF';      // 主按钮文字
   static readonly SECONDARY_BTN_BG: string = '#FFFFFF';      // 次按钮背景
-  static readonly SECONDARY_BTN_BORDER: string = '#E5E5EA';  // 次按钮边框
-  static readonly SECONDARY_BTN_TEXT: string = '#1D1D1F';    // 次按钮文字
-  static readonly TEXT_BTN_COLOR: string = '#007AFF';        // 文字按钮颜色
+  static readonly SECONDARY_BTN_BORDER: string = '#E5E7EB';  // 次按钮边框
+  static readonly SECONDARY_BTN_TEXT: string = '#1A1A2E';    // 次按钮文字
+  static readonly TEXT_BTN_COLOR: string = '#0066FF';        // 文字按钮颜色
 }
 
 // ============ 系统图标定义 ============
@@ -115,6 +136,7 @@ export class RouteNames {
   static readonly VOLUNTEER_DIAGNOSE: string = 'VolunteerDiagnose';
   static readonly MAJOR_DETAIL: string = 'MajorDetail';
   static readonly COLLEGE_VOLUNTEER: string = 'CollegeVolunteer';
+  static readonly SETTING: string = 'Setting';
 }
 
 // 公开路由（无需登录即可访问）

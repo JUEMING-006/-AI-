@@ -1,6 +1,6 @@
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
-import { window } from '@kit.ArkUI';
+import { window, KeyboardAvoidMode } from '@kit.ArkUI';
 
 const DOMAIN = 0x0000;
 
@@ -46,6 +46,10 @@ export default class EntryAbility extends UIAbility {
       
       // 1. 设置全屏布局 - 内容延伸到系统栏区域
       await mainWindow.setWindowLayoutFullScreen(true);
+      
+      // 1.1 设置键盘避让模式为 RESIZE - 键盘弹出时只压缩页面高度，不整体上推
+      // 避免顶部导航栏跟着键盘一起上升
+      mainWindow.getUIContext().setKeyboardAvoidMode(KeyboardAvoidMode.RESIZE);
       
       // 2. 设置系统栏透明
       const systemBarProps: window.SystemBarProperties = {

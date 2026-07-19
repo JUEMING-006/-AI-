@@ -160,6 +160,12 @@ export struct HomePage {
   @Local policyList: PolicyInfo[] = [];
   @Local isLoading: boolean = true;
   @Local daysRemaining: number = 0;
+  // 侧边栏展开/收起状态（由父组件传入）
+  @Param sideBarExpanded: boolean = false;
+  // 侧边栏关闭回调
+  @Param onSideBarClose: () => void = () => {};
+  // 安全区底部高度
+  @Local safeAreaBottom: number = 0;
 
   // 🌟 所有快捷入口集中在左侧（8个功能）
   private quickEntries: QuickEntry[] = [
@@ -196,7 +202,17 @@ export struct HomePage {
 
   aboutToAppear(): void {
     this.daysRemaining = getDaysCountdown(this.examDate);
+    this.safeAreaBottom = AppStorage.get<number>('safeAreaBottom') ?? 0;
     this.loadPolicies();
+  }
+
+  /**
+   * 收起侧边栏
+   */
+  private collapseSideBar(): void {
+    if (this.sideBarExpanded) {
+      this.onSideBarClose();
+    }
   }
 
   private async loadPolicies(): Promise<void> {
@@ -428,14 +444,27 @@ export struct HomePage {
       .width('100%')
       .height('100%')
 
-      // 🌟 顶层：左侧栏（垂直居中）
+      // 🌟 蒙层：展开时覆盖全屏，点击收起侧边栏
+      if (this.sideBarExpanded) {
+        Column()
+          .width('100%')
+          .height('100%')
+          .backgroundColor('#00000000')
+          .onClick(() => {
+            this.collapseSideBar();
+          })
+      }
+
+      // 🌟 侧边栏（垂直居中，可收起/展开）
       Column() {
         this.leftSideBar()
       }
-      .width(60) // 左侧栏宽度
+      .width(60)
       .height('100%')
       .alignItems(HorizontalAlign.Start)
       .justifyContent(FlexAlign.Center)
+      .translate({ x: this.sideBarExpanded ? 0 : -70 })
+      .opacity(this.sideBarExpanded ? 1 : 0)
     }
     .width('100%')
     .height('100%')

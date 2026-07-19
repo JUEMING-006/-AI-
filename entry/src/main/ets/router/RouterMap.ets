@@ -15,6 +15,7 @@ import { ScoreLinePage } from '../views/volunteer/ScoreLinePage';
 import { VolunteerDiagnosePage } from '../views/volunteer/VolunteerDiagnosePage';
 import { MajorDetailPage } from '../views/volunteer/MajorDetailPage';
 import { CollegeVolunteerPage } from '../views/volunteer/CollegeVolunteerPage';
+import { SettingPage } from '../views/setting/SettingPage';
 
 // 学习计划占位组件（Tab 页已有完整实现，此处供快捷入口路由使用）
 @ComponentV2
@@ -79,5 +80,7 @@ export function routerMap(name: string) {
     MajorDetailPage()
   } else if (name === RouteNames.COLLEGE_VOLUNTEER) {
     CollegeVolunteerPage()
+  } else if (name === RouteNames.SETTING) {
+    SettingPage()
   }
 }

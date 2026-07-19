@@ -27,10 +27,17 @@ export struct LiquidTabBar {
   @Param onTabChange: (index: number) => void = () => {};
   // 安全区底部高度
   @Param safeAreaBottom: number = 0;
+  // 是否显示侧边栏按钮（仅首页显示）
+  @Param showSideBarButton: boolean = false;
+  // 侧边栏当前展开状态（用于切换图标）
+  @Param sideBarExpanded: boolean = false;
+  // 侧边栏 toggle 回调
+  @Param onSideBarToggle: () => void = () => {};
 
   // 按压状态
   @Local pressedIndex: number = -1;
   @Local pressScale: number = 1.0;
+  @Local sideBarBtnScale: number = 1.0;
 
   // Tab 项列表
   private readonly tabItems: TabItem[] = [
@@ -92,13 +99,31 @@ export struct LiquidTabBar {
 
         // 第四层：内容层（Tab 项）
         Row() {
-          ForEach(this.tabItems, (item: TabItem) => {
-            this.tabItemBuilder(item);
-          }, (item: TabItem) => `${item.index}`)
+          // 🌟 侧边栏展开按钮（融入Tab栏最左侧）
+          if (this.showSideBarButton) {
+            this.sideBarButtonBuilder()
+
+            // 细竖线分隔
+            Divider()
+              .vertical(true)
+              .height(24)
+              .color('#30FFFFFF')
+              .strokeWidth(0.5)
+          }
+
+          // Tab 项
+          Row() {
+            ForEach(this.tabItems, (item: TabItem) => {
+              this.tabItemBuilder(item);
+            }, (item: TabItem) => `${item.index}`)
+          }
+          .layoutWeight(1)
+          .height('100%')
+          .justifyContent(FlexAlign.SpaceEvenly)
+          .alignItems(VerticalAlign.Center)
         }
         .width('100%')
         .height('100%')
-        .justifyContent(FlexAlign.SpaceEvenly)
         .alignItems(VerticalAlign.Center)
       }
       .width('100%')
@@ -131,6 +156,45 @@ export struct LiquidTabBar {
     .hitTestBehavior(HitTestMode.Transparent)
   }
   
+  /**
+   * 侧边栏按钮构建器
+   */
+  @Builder
+  sideBarButtonBuilder() {
+    Column() {
+      Text(this.sideBarExpanded ? '✕' : '☰')
+        .fontSize(18)
+        .fontColor(this.sideBarExpanded ? AppColors.PRIMARY_COLOR : AppColors.TEXT_HINT)
+    }
+    .width(38)
+    .height('100%')
+    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Center)
+    .scale({ x: this.sideBarBtnScale, y: this.sideBarBtnScale })
+    .animation({ duration: 100, curve: Curve.EaseOut })
+    .onClick(() => {
+      this.onSideBarToggle();
+    })
+    .onTouch((event: TouchEvent) => {
+      if (event.type === TouchType.Down) {
+        this.getUIContext()?.animateTo({
+          duration: 100,
+          curve: Curve.EaseOut,
+        }, () => {
+          this.sideBarBtnScale = 0.85;
+        });
+      } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
+        this.getUIContext()?.animateTo({
+          duration: 200,
+          curve: Curve.EaseOut,
+        }, () => {
+          this.sideBarBtnScale = 1.0;
+        });
+      }
+    })
+    .hitTestBehavior(HitTestMode.Default)
+  }
+
   /**
    * Tab 项构建器
    */

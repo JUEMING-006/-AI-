@@ -1,66 +1,46 @@
-import { AppColors, TabIcons, TabLabels } from '../common/Constants';
 import { routerMap } from '../router/RouterMap';
-import { HomePage } from '../views/home/HomePage';
-import { CollegePage } from '../views/college/CollegePage';
-import { StudyPlanPage } from '../views/study/StudyPlanPage';
-import { VolunteerPage } from '../views/volunteer/VolunteerPage';
-import { LiquidTabBar } from '../components/LiquidTabBar';
+import { ChatPage } from '../views/chat/ChatPage';
+import { chatStore } from '../stores/ChatStore';
 
 /**
- * 🌟 主入口页面 - 液态玻璃风格底部Tab栏
- * 
+ * 主入口页面 — AI对话应用架构（参考Kimi）
+ *
  * 特性：
- * - 悬浮固定的底部Tab导航栏
- * - 液态玻璃磨砂质感
- * - 穿透交互设计
- * - 适配安全区域
+ * - 单主页架构：ChatPage 作为唯一根页面
+ * - 无底部Tab栏（Kimi风格）
+ * - Navigation 用于跳转子页面（院校/志愿/学习等原有功能）
+ * - 安全区域由各组件内部适配
  */
 @Entry
 @ComponentV2
 struct Index {
   @Provider('pathStack') pathStack: NavPathStack = new NavPathStack();
-  @Local currentIndex: number = 0;
-  @Local safeAreaTop: number = 0;
-  @Local safeAreaBottom: number = 0;
 
-  aboutToAppear(): void {
-    // 获取安全区域高度
-    this.safeAreaTop = AppStorage.get<number>('safeAreaTop') ?? 0;
-    this.safeAreaBottom = AppStorage.get<number>('safeAreaBottom') ?? 0;
+  // 拦截返回键：聊天界面 → 首页，首页 → 退出应用
+  onBackPress(): boolean {
+    // 有子页面时让Navigation自行处理
+    if (this.pathStack.size() > 0) {
+      return false;
+    }
+    // 在聊天界面，返回首页
+    if (chatStore.currentConversation !== null) {
+      chatStore.clearCurrentConversation();
+      return true;
+    }
+    // 在首页，退出应用
+    return false;
   }
 
   build() {
-    Stack({ alignContent: Alignment.Bottom }) {
-      // 📱 页面内容区域
-      Navigation(this.pathStack) {
-        // 根据当前 Tab 索引显示对应页面
-        if (this.currentIndex === 0) {
-          HomePage()
-        } else if (this.currentIndex === 1) {
-          CollegePage()
-        } else if (this.currentIndex === 2) {
-          StudyPlanPage()
-        } else if (this.currentIndex === 3) {
-          VolunteerPage()
-        }
-      }
-      .width('100%')
-      .height('100%')
-      .navDestination(routerMap)
-      .hideTitleBar(true)
-      .mode(NavigationMode.Stack)
-      
-      // 🌊 液态玻璃风格底部 Tab 栏
-      LiquidTabBar({
-        currentIndex: this.currentIndex,
-        onTabChange: (index: number) => {
-          this.currentIndex = index;
-        },
-        safeAreaBottom: this.safeAreaBottom
-      })
+    Navigation(this.pathStack) {
+      // AI对话主页（唯一根页面）
+      ChatPage()
     }
     .width('100%')
     .height('100%')
-    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+    .navDestination(routerMap)
+    .hideTitleBar(true)
+    .mode(NavigationMode.Stack)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
   }
 }

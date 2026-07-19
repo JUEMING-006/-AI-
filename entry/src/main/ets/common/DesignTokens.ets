@@ -79,3 +79,36 @@ export class GlassEffect {
   static readonly BLUR_REGULAR: number = 40;
   static readonly BLUR_THICK: number = 80;
 }
+
+// Kimi 品牌色配置 — 纯蓝 #0066FF（对标Kimi官方配色，无紫色渐变）
+export class KimiGradient {
+  static readonly ANGLE: number = 135;                          // 渐变角度（保留兼容）
+  static readonly START_COLOR: string = '#0066FF';             // 品牌蓝（Kimi标准）
+  static readonly END_COLOR: string = '#0066FF';               // 同起始色，无渐变
+  static readonly START_COLOR_LIGHT: string = '#4D94FF';       // 浅蓝（悬停态）
+  static readonly END_COLOR_LIGHT: string = '#4D94FF';         // 同浅蓝
+  static readonly DISABLED_COLOR: string = '#CCCCCC';          // 禁用态灰色背景
+  static readonly DISABLED_ICON: string = '#999999';           // 禁用态图标色
+}
+
+// 对话场景圆角令牌（参考Kimi特色圆角）
+export class ChatRadius {
+  static readonly INPUT: number = 22;       // 输入框（大胶囊形，区别于通用12vp）
+  static readonly MESSAGE: number = 18;     // 消息气泡（更圆润）
+  static readonly TAB_TAG: number = 16;     // 工具栏标签（胶囊形）
+  static readonly SHEET_TOP: number = 16;   // BottomSheet顶部圆角
+  static readonly CARD: number = 12;        // 卡片/容器
+  static readonly MENU_ITEM: number = 8;    // 菜单项
+  static readonly BUBBLE_TAIL: number = 6;   // 气泡尖角
+}
+
+// 对话场景字体令牌（参考Kimi）
+export class ChatFontSize {
+  static readonly TITLE: number = 16;       // 模型选择器标题
+  static readonly BODY: number = 15;        // 消息正文（比通用15fp一致）
+  static readonly STEP: number = 13;        // 思考步骤文字
+  static readonly SUGGESTION: number = 13;  // 追问建议
+  static readonly SOURCE: number = 13;      // 引用来源标题
+  static readonly SOURCE_DESC: number = 12; // 引用来源描述
+  static readonly TIME_GROUP: number = 12;  // 历史对话分组标题
+}

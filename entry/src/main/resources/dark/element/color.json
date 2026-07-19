@@ -1,8 +1,29 @@
 {
   "color": [
-    {
-      "name": "start_window_background",
-      "value": "#000000"
-    }
+    { "name": "start_window_background", "value": "#000000" },
+    { "name": "moon_bg_page", "value": "#121212" },
+    { "name": "moon_bg_content", "value": "#1F1F1F" },
+    { "name": "moon_ai_reply_bg", "value": "#2A2A2A" },
+    { "name": "moon_text_primary", "value": "#FFFFFF" },
+    { "name": "moon_text_secondary", "value": "#AAAAAA" },
+    { "name": "moon_text_hint", "value": "#666666" },
+    { "name": "moon_divider", "value": "#333333" },
+    { "name": "moon_input_bg", "value": "#2A2A2A" },
+    { "name": "moon_top_bar_bg", "value": "#1F1F1F" },
+    { "name": "moon_card_bg", "value": "#1F1F1F" },
+    { "name": "moon_suggestion_bg", "value": "#2A2A2A" },
+    { "name": "moon_suggestion_border", "value": "#333333" },
+    { "name": "moon_thinking_bg", "value": "#2A2A2A" },
+    { "name": "moon_source_bg", "value": "#1A2A3A" },
+    { "name": "moon_mask", "value": "#99000000" },
+    { "name": "moon_sheet_bg", "value": "#1F1F1F" },
+    { "name": "moon_selected_bg", "value": "#260066FF" },
+    { "name": "moon_hover_bg", "value": "#1AFFFFFF" },
+    { "name": "brand_primary", "value": "#0066FF" },
+    { "name": "brand_gradient_end", "value": "#0066FF" },
+    { "name": "brand_primary_light", "value": "#0D2744" },
+    { "name": "color_success", "value": "#4CAF50" },
+    { "name": "color_warning", "value": "#FF9800" },
+    { "name": "color_error", "value": "#F44336" }
   ]
 }
