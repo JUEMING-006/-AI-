@@ -1,6 +1,7 @@
+// [BACKEND] 后端调用已注释，当前使用前端 mock 数据
 import { CollegeInfo, ScoreLine, MajorMatch, CollegeFilter } from '../models/CollegeModel';
-import { httpClient } from './HttpClient';
-import type { AxiosResponse } from '@ohos/axios';
+// [BACKEND] import { httpClient } from './HttpClient';
+// [BACKEND] import type { AxiosResponse } from '@ohos/axios';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 
 const DOMAIN: number = 0x0001;
@@ -62,56 +63,116 @@ export class CollegeService {
 
   /** GET /colleges — 获取院校列表（支持筛选） */
   async getColleges(filter: CollegeFilter): Promise<CollegeInfo[]> {
-    const params: Record<string, string> = {};
-    if (filter.province !== '') {
-      params['province'] = filter.province;
-    }
-    if (filter.type !== '') {
-      params['type'] = filter.type;
-    }
-    if (filter.keyword !== '') {
-      params['keyword'] = filter.keyword;
-    }
-    hilog.info(DOMAIN, TAG, 'getColleges: province=%{public}s type=%{public}s keyword=%{public}s',
+    hilog.info(DOMAIN, TAG, '[MOCK] getColleges: province=%{public}s type=%{public}s keyword=%{public}s',
       filter.province, filter.type, filter.keyword);
-    const response: AxiosResponse<Record<string, Object>[]> = await httpClient.get('/colleges', { params: params });
-    const rawData: Record<string, Object>[] = response.data;
-    return rawData.map((d: Record<string, Object>) => toCollegeInfo(d));
+    // [BACKEND] const response: AxiosResponse<Record<string, Object>[]> = await httpClient.get('/colleges', { params });
+    // [BACKEND] return rawData.map(d => toCollegeInfo(d));
+    return getMockColleges(filter);
   }
 
   /** GET /colleges/{id} — 获取院校详情 */
   async getCollegeDetail(id: string): Promise<CollegeInfo> {
-    hilog.info(DOMAIN, TAG, 'getCollegeDetail: id=%{public}s', id);
-    const response: AxiosResponse<Record<string, Object>> = await httpClient.get(`/colleges/${id}`);
-    return toCollegeInfo(response.data);
+    hilog.info(DOMAIN, TAG, '[MOCK] getCollegeDetail: id=%{public}s', id);
+    // [BACKEND] const response: AxiosResponse<Record<string, Object>> = await httpClient.get(`/colleges/${id}`);
+    // [BACKEND] return toCollegeInfo(response.data);
+    const list: CollegeInfo[] = getMockColleges({ province: '', type: '', keyword: '' });
+    for (const c of list) {
+      if (c.id === id) {
+        return c;
+      }
+    }
+    return list[0];
   }
 
   /** GET /colleges/{id}/score-lines — 获取历年分数线 */
   async getScoreLines(collegeId: string): Promise<ScoreLine[]> {
-    hilog.info(DOMAIN, TAG, 'getScoreLines: collegeId=%{public}s', collegeId);
-    const response: AxiosResponse<Record<string, Object>[]> = await httpClient.get(`/colleges/${collegeId}/score-lines`);
-    const rawData: Record<string, Object>[] = response.data;
-    return rawData.map((d: Record<string, Object>) => toScoreLine(d));
+    hilog.info(DOMAIN, TAG, '[MOCK] getScoreLines: collegeId=%{public}s', collegeId);
+    // [BACKEND] const response = await httpClient.get(`/colleges/${collegeId}/score-lines`);
+    return getMockScoreLines();
   }
 
   /** GET /majors/match — 专业匹配 */
   async matchMajors(specialty: string): Promise<MajorMatch> {
-    hilog.info(DOMAIN, TAG, 'matchMajors: specialty=%{public}s', specialty);
-    const response: AxiosResponse<Record<string, Object>> = await httpClient.get('/majors/match', { params: { specialty: specialty } });
-    return toMajorMatch(response.data);
+    hilog.info(DOMAIN, TAG, '[MOCK] matchMajors: specialty=%{public}s', specialty);
+    // [BACKEND] const response = await httpClient.get('/majors/match', { params: { specialty } });
+    // [BACKEND] return toMajorMatch(response.data);
+    const m = new MajorMatch();
+    m.specialtyName = specialty;
+    m.matchedMajors = ['计算机科学与技术', '软件工程', '网络工程', '信息安全', '数据科学与大数据技术'];
+    return m;
   }
 
   /** POST/DELETE /user/favorites — 切换收藏状态 */
   async toggleFavorite(collegeId: string, isFavorite: boolean): Promise<void> {
-    hilog.info(DOMAIN, TAG, 'toggleFavorite: collegeId=%{public}s isFavorite=%{public}s',
+    hilog.info(DOMAIN, TAG, '[MOCK] toggleFavorite: collegeId=%{public}s isFavorite=%{public}s',
       collegeId, `${isFavorite}`);
-    const requestBody: FavoriteRequest = { collegeId: collegeId };
-    if (isFavorite) {
-      await httpClient.post('/user/favorites', requestBody);
-    } else {
-      await httpClient.delete('/user/favorites', { data: requestBody });
+    // [BACKEND] const requestBody: FavoriteRequest = { collegeId };
+    // [BACKEND] if (isFavorite) { await httpClient.post('/user/favorites', requestBody); }
+    // [BACKEND] else { await httpClient.delete('/user/favorites', { data: requestBody }); }
+    // mock：不做任何事
+  }
+}
+
+// ── mock 数据 ──
+
+function getMockColleges(filter: CollegeFilter): CollegeInfo[] {
+  const all: CollegeInfo[] = [];
+  const data: Array<[string, string, string, string, string, string]> = [
+    ['college_001', '华南师范大学', '广东', '广州', '公办', '一本'],
+    ['college_002', '广东技术师范大学', '广东', '广州', '公办', '一本'],
+    ['college_003', '岭南师范学院', '广东', '湛江', '公办', '二本'],
+    ['college_004', '韩山师范学院', '广东', '潮州', '公办', '二本'],
+    ['college_005', '广东石油化工学院', '广东', '茂名', '公办', '二本'],
+    ['college_006', '深圳技术大学', '广东', '深圳', '公办', '一本'],
+    ['college_007', '广州软件学院', '广东', '广州', '民办', '二本'],
+    ['college_008', '广东理工学院', '广东', '肇庆', '民办', '二本'],
+  ];
+  for (const item of data) {
+    const c = new CollegeInfo();
+    c.id = item[0];
+    c.name = item[1];
+    c.province = item[2];
+    c.city = item[3];
+    c.type = item[4];
+    c.level = item[5];
+    c.address = item[3] + '市' + item[1] + '校区';
+    c.phone = '020-12345678';
+    c.website = 'https://www.example.edu.cn';
+    c.isFavorite = false;
+    c.logoUrl = '';
+    all.push(c);
+  }
+  // 筛选
+  let result: CollegeInfo[] = all;
+  if (filter.province !== '') {
+    result = result.filter((c: CollegeInfo) => c.province === filter.province);
+  }
+  if (filter.type !== '') {
+    result = result.filter((c: CollegeInfo) => c.type === filter.type);
+  }
+  if (filter.keyword !== '') {
+    result = result.filter((c: CollegeInfo) => c.name.includes(filter.keyword));
+  }
+  return result;
+}
+
+function getMockScoreLines(): ScoreLine[] {
+  const lines: ScoreLine[] = [];
+  const years: number[] = [2023, 2024, 2025];
+  const majors: string[] = ['计算机科学与技术', '软件工程', '网络工程'];
+  for (const year of years) {
+    for (const major of majors) {
+      const s = new ScoreLine();
+      s.year = year;
+      s.major = major;
+      s.minScore = 180 + Math.floor(Math.random() * 30);
+      s.avgScore = s.minScore + 15;
+      s.maxScore = s.minScore + 40;
+      s.enrollCount = 50 + Math.floor(Math.random() * 50);
+      lines.push(s);
     }
   }
+  return lines;
 }
 
 export const collegeService: CollegeService = CollegeService.getInstance();

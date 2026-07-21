@@ -3,13 +3,25 @@ import { PolicyInfo } from '../../models/PolicyModel';
 import { policyService } from '../../services/PolicyService';
 import { NavHeader } from '../../components/NavHeader';
 
-// 政策详情页
+// 政策页面 — 无参数时展示列表，有参数时展示详情
 @ComponentV2
 export struct PolicyDetailPage {
   @Consumer('pathStack') pathStack: NavPathStack = new NavPathStack();
   @Local policyId: string = '';
   @Local policy: PolicyInfo = new PolicyInfo();
+  @Local policies: PolicyInfo[] = [];
   @Local isLoading: boolean = true;
+  @Local isListMode: boolean = true;
+
+  private async loadList(): Promise<void> {
+    this.isLoading = true;
+    try {
+      this.policies = await policyService.getPolicies('');
+    } catch (_e) {
+      this.policies = [];
+    }
+    this.isLoading = false;
+  }
 
   private async loadDetail(): Promise<void> {
     this.isLoading = true;
@@ -43,7 +55,7 @@ export struct PolicyDetailPage {
   build() {
     NavDestination() {
       Column() {
-        NavHeader({ title: '政策详情' })
+        NavHeader({ title: this.isListMode ? '政策资讯' : '政策详情' })
 
         if (this.isLoading) {
           Column() {
@@ -60,7 +72,57 @@ export struct PolicyDetailPage {
           .layoutWeight(1)
           .justifyContent(FlexAlign.Center)
           .alignItems(HorizontalAlign.Center)
+        } else if (this.isListMode) {
+          // 政策列表模式
+          Scroll() {
+            Column({ space: 12 }) {
+              ForEach(this.policies, (item: PolicyInfo) => {
+                Column({ space: 8 }) {
+                  Row() {
+                    Text(this.getCategoryLabel(item.category))
+                      .fontSize(11)
+                      .fontColor('#FFFFFF')
+                      .backgroundColor(this.getCategoryColor(item.category))
+                      .borderRadius(4)
+                      .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+                    Blank()
+                    Text(item.publishDate)
+                      .fontSize(12)
+                      .fontColor(AppColors.TEXT_HINT)
+                  }
+                  .width('100%')
+
+                  Text(item.title)
+                    .fontSize(16)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(AppColors.TEXT_PRIMARY)
+                    .width('100%')
+
+                  Text(item.summary)
+                    .fontSize(13)
+                    .fontColor(AppColors.TEXT_SECONDARY)
+                    .width('100%')
+                    .maxLines(2)
+                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+                }
+                .width('100%')
+                .padding(16)
+                .backgroundColor(AppColors.CARD_COLOR)
+                .borderRadius(12)
+                .onClick(() => {
+                  this.pathStack.pushPath({ name: 'PolicyDetail', param: item.id });
+                })
+              }, (item: PolicyInfo) => item.id)
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 16, bottom: 24 })
+          }
+          .width('100%')
+          .layoutWeight(1)
+          .scrollBar(BarState.Off)
+          .backgroundColor(AppColors.BACKGROUND_COLOR)
         } else {
+          // 政策详情模式
           Scroll() {
             Column() {
             // 标题区
@@ -133,11 +195,11 @@ export struct PolicyDetailPage {
       const param = context.pathInfo.param as string | undefined;
       if (param !== null && param !== undefined && param !== '') {
         this.policyId = param;
+        this.isListMode = false;
         this.loadDetail();
       } else {
-        this.isLoading = false;
-        this.policy.title = '暂无政策';
-        this.policy.content = '请从首页政策列表点击进入查看详情。';
+        this.isListMode = true;
+        this.loadList();
       }
     })
   }

@@ -1,3 +1,7 @@
+/**
+ * @deprecated 此组件已废弃，新代码请使用 LiquidGlass 参数规范的组件。
+ * 保留用于兼容旧代码，新功能请勿引用此组件。
+ */
 import { AppColors } from '../common/Constants';
 import { Radius, Shadows, Spacing, GlassEffect } from '../common/DesignTokens';
 import { AnimConfig } from '../common/AnimationHelper';

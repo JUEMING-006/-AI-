@@ -1,16 +1,18 @@
 // 应用颜色常量 — 对标Kimi官方配色（黑白灰 + 品牌蓝 #0066FF）
+// 注意：以下硬编码颜色为旧体系，新代码应优先使用 $r('app.color.xxx') 资源引用以支持暗色模式
 export class AppColors {
   // 品牌色 — 纯蓝 #0066FF（对标Kimi官方配色）
   static readonly PRIMARY_COLOR: string = '#0066FF';        // 品牌蓝（Kimi标准）
   static readonly PRIMARY_LIGHT: string = '#E3F2FD';        // 淡蓝背景（选中态）
-  static readonly PRIMARY_GRADIENT_END: string = '#0066FF'; // 同品牌蓝（无渐变）
+  static readonly PRIMARY_GRADIENT_END: string = '#0052CC'; // 深一档蓝（微妙渐变）
   static readonly BACKGROUND_COLOR: string = '#F5F5F7';    // Apple 浅灰底
   static readonly CARD_COLOR: string = '#FFFFFF';
+  // 以下旧Apple色系已迁移至资源引用（moon_text_*），仅用于兼容旧组件
   static readonly TEXT_PRIMARY: string = '#1D1D1F';
   static readonly TEXT_SECONDARY: string = '#86868B';
   static readonly TEXT_HINT: string = '#AEAEB2';
   static readonly DIVIDER_COLOR: string = '#E5E5EA';
-  static readonly SUCCESS_COLOR: string = '#10B981';       // 翡翠绿
+  static readonly SUCCESS_COLOR: string = '#34C759';       // iOS绿（与color.json一致）
   static readonly WARNING_COLOR: string = '#F59E0B';       // 琥珀色
   static readonly ERROR_COLOR: string = '#FF3B30';
   static readonly TAB_INACTIVE: string = '#999999';
@@ -121,6 +123,7 @@ export enum CollegeLevel {
 export class RouteNames {
   static readonly POLICY_DETAIL: string = 'PolicyDetail';
   static readonly QUALIFICATION_CHECK: string = 'QualificationCheck';
+  static readonly COLLEGE_LIST: string = 'CollegeList';
   static readonly COLLEGE_DETAIL: string = 'CollegeDetail';
   static readonly COLLEGE_FILTER: string = 'CollegeFilter';
   static readonly COLLEGE_COMPARE: string = 'CollegeCompare';
@@ -128,6 +131,7 @@ export class RouteNames {
   static readonly DAILY_TASK: string = 'DailyTask';
   static readonly PROGRESS: string = 'Progress';
   static readonly SCORE_INPUT: string = 'ScoreInput';
+  static readonly VOLUNTEER_MAIN: string = 'VolunteerMain';
   static readonly VOLUNTEER_RESULT: string = 'VolunteerResult';
   static readonly LOGIN: string = 'LoginPage';
   // 志愿填报新增路由

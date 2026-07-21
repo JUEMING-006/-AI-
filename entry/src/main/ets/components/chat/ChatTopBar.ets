@@ -1,7 +1,6 @@
 // 顶部导航栏 — 侧边栏按钮 + 模型选择器 + 静音按钮
-// 遵循Kimi设计规范：56dp高度，简洁背景，规范间距
-import { ChatFontSize } from '../../common/DesignTokens';
-import { AppColors } from '../../common/Constants';
+// 遵循Kimi设计规范：56dp高度，液态玻璃背景，规范间距
+import { ChatFontSize, LiquidGlass } from '../../common/DesignTokens';
 import { modelStore } from '../../stores/ModelStore';
 
 @ComponentV2
@@ -29,12 +28,13 @@ export struct ChatTopBar {
         .width(40)
         .height(40)
         .borderRadius(20)
-        .backgroundColor('#E8E8E8')
-        .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
-        .shadow({ radius: 4, color: '#0D000000', offsetX: 0, offsetY: 1 })
+        .backgroundColor($r('app.color.moon_icon_bg'))
+        .backgroundBlurStyle(LiquidGlass.BUTTON_BLUR)
+        .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+        .shadow(LiquidGlass.SHADOW_CONTAINER)
         .onClick(() => this.onMenuClick())
 
-        // 模型选择器（液态玻璃，无下拉箭头）
+        // 模型选择器（液态玻璃胶囊，无下拉箭头）
         Button() {
           Text(modelStore.currentModelName)
             .fontSize(ChatFontSize.TITLE)
@@ -44,9 +44,10 @@ export struct ChatTopBar {
         .type(ButtonType.Normal)
         .height(40)
         .padding({ left: 14, right: 14 })
-        .backgroundColor('#E8E8E8')
-        .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
-        .shadow({ radius: 4, color: '#0D000000', offsetX: 0, offsetY: 1 })
+        .backgroundColor($r('app.color.moon_icon_bg'))
+        .backgroundBlurStyle(LiquidGlass.BUTTON_BLUR)
+        .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+        .shadow(LiquidGlass.SHADOW_CONTAINER)
         .borderRadius(20)
         .margin({ left: 4 })
         .onClick(() => this.onModelClick())
@@ -71,8 +72,8 @@ export struct ChatTopBar {
           Divider()
             .vertical(true)
             .height(20)
-            .color('#D0D0D0')
-            .strokeWidth(0.5)
+            .color($r('app.color.moon_divider'))
+            .strokeWidth(1)
 
           // 静音按钮
           Button() {
@@ -91,19 +92,25 @@ export struct ChatTopBar {
           })
         }
         .height(40)
-        .backgroundColor('#E8E8E8')
-        .backgroundBlurStyle(BlurStyle.COMPONENT_THIN)
-        .shadow({ radius: 4, color: '#0D000000', offsetX: 0, offsetY: 1 })
+        .backgroundColor($r('app.color.moon_icon_bg'))
+        .backgroundBlurStyle(LiquidGlass.BUTTON_BLUR)
+        .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+        .shadow(LiquidGlass.SHADOW_CONTAINER)
         .borderRadius(20)
         .margin({ right: 12 })
       }
       .width('100%')
       .height(56)
       .padding({ left: 12 })
+
+      // 底部分隔线 — 增强视觉边界
+      Divider()
+        .color($r('app.color.moon_divider'))
+        .strokeWidth(1)
     }
     .width('100%')
     .padding({ top: this.safeAreaTop })
-    .backgroundColor('#F8F8F8')
+    .backgroundColor($r('app.color.moon_chat_bar_bg'))
     .backgroundBlurStyle(BlurStyle.COMPONENT_REGULAR)
   }
 }

@@ -2,6 +2,7 @@
 // 首页叠在侧边栏上，右滑打开暴露侧边栏，点击首页弹回
 import { promptAction, display } from '@kit.ArkUI';
 import { AppColors, RouteNames } from '../../common/Constants';
+import { LiquidGlass } from '../../common/DesignTokens';
 import { chatStore } from '../../stores/ChatStore';
 import { ChatService } from '../../services/ChatService';
 import { ChatMessage, MessageRole } from '../../models/ChatModel';
@@ -28,7 +29,7 @@ const VALUE_CARDS: ValueCard[] = [
   { title: '薪资提升', value: '+40%', desc: '本科平均薪资较专科提升约40%', color: AppColors.PRIMARY_COLOR },
   { title: '升学路径', value: '本科→研究生', desc: '升本后可继续深造考研', color: AppColors.SUCCESS_COLOR },
   { title: '成功案例', value: '85%', desc: '往届学员85%成功升入本科', color: AppColors.WARNING_COLOR },
-  { title: '就业选择', value: '+60%', desc: '本科可投递岗位数量较专科增加约60%', color: '#007AFF' },
+  { title: '就业选择', value: '+60%', desc: '本科可投递岗位数量较专科增加约60%', color: AppColors.PRIMARY_COLOR },
   { title: '考公资格', value: '可报考', desc: '本科学历可报考更多公务员岗位', color: '#34C759' },
   { title: '职称评定', value: '提前1-2年', desc: '本科毕业可更快评定中级职称', color: '#FF9500' }
 ];
@@ -43,8 +44,8 @@ interface FeatureTag {
 
 const FEATURE_TAGS: FeatureTag[] = [
   { icon: $r('sys.symbol.star'), label: '智能问答', color: '#0066FF', route: '' },
-  { icon: $r('sys.symbol.building'), label: '院校推荐', color: '#FF9500', route: RouteNames.COLLEGE_DETAIL },
-  { icon: $r('sys.symbol.bookmark'), label: '志愿填报', color: '#34C759', route: RouteNames.VOLUNTEER_RESULT },
+  { icon: $r('sys.symbol.building'), label: '院校推荐', color: '#FF9500', route: RouteNames.COLLEGE_LIST },
+  { icon: $r('sys.symbol.bookmark'), label: '志愿填报', color: '#34C759', route: RouteNames.VOLUNTEER_MAIN },
   { icon: $r('sys.symbol.doc'), label: '政策解读', color: '#AF52DE', route: RouteNames.POLICY_DETAIL }
 ];
 
@@ -63,6 +64,7 @@ export struct ChatPage {
   @Local mainTranslate: number = 0;
   @Local safeAreaTop: number = 0;
   @Local policyList: PolicyInfo[] = [];
+  @Local showPolicyBubble: boolean = true;
   // Logo 动画状态
   @Local logoScale: number = 1.0;
   @Local logoFloatY: number = 0;
@@ -90,9 +92,9 @@ export struct ChatPage {
     const startTime = Date.now();
     this.logoTimerId = setInterval(() => {
       const t = (Date.now() - startTime) / 1000;
-      this.logoScale = 1.0 + 0.2 * Math.sin(t * 2);
-      this.logoFloatY = -8 * Math.sin(t * 1.5);
-      this.logoRotate = 12 * Math.sin(t * 1.2);
+      this.logoScale = 1.0 + 0.08 * Math.sin(t * 2);
+      this.logoFloatY = -6 * Math.sin(t * 1.5);
+      this.logoRotate = 8 * Math.sin(t * 1.2);
     }, 50);
   }
 
@@ -209,11 +211,19 @@ export struct ChatPage {
                   .scale({ x: this.logoScale, y: this.logoScale })
                   .translate({ y: this.logoFloatY })
                   .rotate({ angle: this.logoRotate })
+                  .onClick(() => {
+                    this.modelSheetVisible = true;
+                  })
 
                 Text('开始你的第一次对话')
                   .fontSize(16)
                   .fontColor($r('app.color.moon_text_hint'))
                   .margin({ top: 16 })
+
+                Text('点击Logo切换模式')
+                  .fontSize(12)
+                  .fontColor($r('app.color.brand_primary'))
+                  .margin({ top: 6 })
               }
               .width('100%')
               .height('100%')
@@ -221,7 +231,10 @@ export struct ChatPage {
               .alignItems(HorizontalAlign.Center)
             }
 
-            this.messageList()
+            // 仅有消息时才渲染列表，避免空List拦截Logo点击
+            if (chatStore.currentConversation!.messages.length > 0) {
+              this.messageList()
+            }
 
             Column() {
               ChatTopBar({
@@ -316,6 +329,9 @@ export struct ChatPage {
         isVisible: this.modelSheetVisible,
         onClose: () => {
           this.modelSheetVisible = false;
+        },
+        onNavigate: (route: string) => {
+          this.onNavigate(route);
         }
       })
     }
@@ -328,8 +344,9 @@ export struct ChatPage {
   @Builder
   homePage() {
     Column() {
-      // === 顶部栏：菜单按钮 ===
+      // === 顶部栏：菜单按钮 + 信箱通知 ===
       Row() {
+        // 左侧：菜单按钮
         Button() {
           SymbolGlyph($r('sys.symbol.more'))
             .fontSize(20)
@@ -339,123 +356,289 @@ export struct ChatPage {
         .width(40)
         .height(40)
         .borderRadius(20)
-        .backgroundColor('#E8E8E8')
-        .shadow({ radius: 4, color: '#0D000000', offsetX: 0, offsetY: 1 })
+        .backgroundColor($r('app.color.moon_icon_bg'))
+        .backgroundBlurStyle(LiquidGlass.BUTTON_BLUR)
+        .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+        .shadow(LiquidGlass.SHADOW_CONTAINER)
         .onClick(() => {
           this.toggleSidebar();
         })
+
+        // 中间：新政策气泡提示（无政策时 Blank 占位）
+        if (this.showPolicyBubble && this.policyList.length > 0) {
+          Row() {
+            Text('新政策')
+              .fontSize(10)
+              .fontColor('#FFFFFF')
+              .backgroundColor('#FF3B30')
+              .borderRadius(4)
+              .padding({ left: 4, right: 4, top: 1, bottom: 1 })
+
+            Text(this.policyList[0].title)
+              .fontSize(13)
+              .fontColor($r('app.color.moon_text_primary'))
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+              .layoutWeight(1)
+              .margin({ left: 8 })
+
+            SymbolGlyph($r('sys.symbol.arrow_right'))
+              .fontSize(12)
+              .fontColor([$r('app.color.moon_text_hint')])
+          }
+          .layoutWeight(1)
+          .height(36)
+          .margin({ left: 8, right: 8 })
+          .padding({ left: 12, right: 12 })
+          .borderRadius(18)
+          .backgroundColor($r('app.color.moon_value_card_bg'))
+          .border({ width: LiquidGlass.BORDER_WIDTH, color: '#FF3B30' })
+          .shadow(LiquidGlass.SHADOW_CONTAINER)
+          .onClick(() => {
+            if (this.policyList.length > 0) {
+              this.pathStack.pushPath({ name: RouteNames.POLICY_DETAIL, param: this.policyList[0].id });
+            }
+          })
+        } else {
+          Blank()
+        }
+
+        // 右侧：信箱按钮（带红点提示）
+        Stack({ alignContent: Alignment.TopEnd }) {
+          Button() {
+            SymbolGlyph($r('sys.symbol.speaker_wave_2'))
+              .fontSize(20)
+              .fontColor([$r('app.color.moon_text_primary')])
+          }
+          .type(ButtonType.Circle)
+          .width(40)
+          .height(40)
+          .borderRadius(20)
+          .backgroundColor($r('app.color.moon_icon_bg'))
+          .backgroundBlurStyle(LiquidGlass.BUTTON_BLUR)
+          .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+          .shadow(LiquidGlass.SHADOW_CONTAINER)
+          .onClick(() => {
+            this.onNavigate(RouteNames.POLICY_DETAIL);
+          })
+
+          // 红点提示
+          if (this.policyList.length > 0) {
+            Column()
+              .width(8)
+              .height(8)
+              .borderRadius(4)
+              .backgroundColor('#FF3B30')
+              .margin({ top: 8, right: 8 })
+          }
+        }
+        .width(40)
+        .height(40)
       }
       .width('100%')
-      .height(56 + this.safeAreaTop)
+      .height(48 + this.safeAreaTop)
       .padding({ left: 16, right: 16, top: this.safeAreaTop })
       .alignItems(VerticalAlign.Center)
 
-      // === 内容区（固定不滚动） ===
+      // === 内容区（固定布局） ===
       Column() {
-        Column() {
-          // Logo — 应用图标
-          Image($r('app.media.logo'))
-            .width(64)
-            .height(64)
-            .borderRadius(32)
-            .objectFit(ImageFit.Cover)
-            .shadow({ radius: 12, color: '#20000000', offsetX: 0, offsetY: 4 })
-            .scale({ x: this.logoScale, y: this.logoScale })
-            .translate({ y: this.logoFloatY })
-            .rotate({ angle: this.logoRotate })
+          // === 精简头部 — Logo + 欢迎语水平排列 ===
+          Row({ space: 12 }) {
+            Image($r('app.media.logo'))
+              .width(44)
+              .height(44)
+              .borderRadius(22)
+              .objectFit(ImageFit.Cover)
+              .shadow({ radius: 8, color: '#20000000', offsetX: 0, offsetY: 2 })
+              .scale({ x: this.logoScale, y: this.logoScale })
+              .translate({ y: this.logoFloatY })
 
-          // 欢迎标题
-          Text('你好，我是智慧职途')
-            .fontSize(22)
-            .fontWeight(FontWeight.Medium)
-            .fontColor($r('app.color.moon_text_primary'))
-            .margin({ top: 14 })
-
-          Text('你的专属升本规划师')
-            .fontSize(14)
-            .fontColor($r('app.color.brand_primary'))
-            .margin({ top: 6 })
-
-          Text('为你提供精准志愿填报 · 院校推荐 · 政策解读 · 备考计划')
-            .fontSize(12)
-            .fontColor($r('app.color.moon_text_secondary'))
-            .margin({ top: 8, left: 24, right: 24 })
-            .textAlign(TextAlign.Center)
-
-          // === 功能特色标签 ===
-          Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Center }) {
-            ForEach(FEATURE_TAGS, (tag: FeatureTag) => {
-              Row({ space: 4 }) {
-                SymbolGlyph(tag.icon)
-                  .fontSize(13)
-                  .fontColor([tag.color])
-                Text(tag.label)
-                  .fontSize(13)
-                  .fontColor($r('app.color.moon_text_primary'))
-              }
-              .padding({ left: 12, right: 12, top: 6, bottom: 6 })
-              .borderRadius(16)
-              .backgroundColor('#FFFFFF')
-              .shadow({ radius: 4, color: '#0D000000', offsetX: 0, offsetY: 1 })
-              .margin({ left: 4, right: 4, top: 4, bottom: 4 })
-              .onClick(() => {
-                if (tag.route.length === 0) {
-                  chatStore.createConversation();
-                } else {
-                  this.onNavigate(tag.route);
-                }
-              })
-            }, (tag: FeatureTag) => tag.label)
+            Column() {
+              Text('你好，我是智慧职途')
+                .fontSize(18)
+                .fontWeight(FontWeight.Medium)
+                .fontColor($r('app.color.moon_text_primary'))
+              Text('你的专属升本规划师')
+                .fontSize(12)
+                .fontColor($r('app.color.brand_primary'))
+                .margin({ top: 2 })
+            }
+            .alignItems(HorizontalAlign.Start)
+            .layoutWeight(1)
           }
           .width('100%')
-          .margin({ top: 16, left: 20, right: 20 })
+          .padding({ left: 20, right: 20, top: 8, bottom: 16 })
 
-          // === 升本价值 — 2列卡片网格 ===
-          Column() {
-            Text('升本价值')
-              .fontSize(16)
-              .fontWeight(FontWeight.Medium)
-              .fontColor($r('app.color.moon_text_primary'))
-              .margin({ bottom: 10 })
-
-            Flex({ wrap: FlexWrap.Wrap, direction: FlexDirection.Row, justifyContent: FlexAlign.SpaceBetween }) {
-              ForEach(VALUE_CARDS, (card: ValueCard) => {
-                Column({ space: 4 }) {
-                  Text(card.value)
-                    .fontSize(20)
-                    .fontWeight(FontWeight.Bold)
-                    .fontColor(card.color)
-                  Text(card.title)
-                    .fontSize(12)
-                    .fontColor($r('app.color.moon_text_secondary'))
-                  Text(card.desc)
-                    .fontSize(11)
-                    .fontColor($r('app.color.moon_text_hint'))
-                    .maxLines(2)
-                    .textOverflow({ overflow: TextOverflow.Ellipsis })
-                }
-                .width('48%')
-                .height(100)
-                .padding(12)
-                .alignItems(HorizontalAlign.Start)
-                .borderRadius(14)
-                .backgroundColor('#FFFFFF')
-                .shadow({ radius: 6, color: '#0F000000', offsetX: 0, offsetY: 1 })
-                .margin({ bottom: 8 })
-              }, (card: ValueCard) => card.title)
+          // === Bento 大卡片：开始对话（蓝色渐变背景） ===
+          Row() {
+            Column() {
+              SymbolGlyph($r('sys.symbol.star'))
+                .fontSize(28)
+                .fontColor(['#FFFFFF'])
+              Text('开始对话')
+                .fontSize(16)
+                .fontWeight(FontWeight.Bold)
+                .fontColor('#FFFFFF')
+                .margin({ top: 8 })
+              Text('输入你的升本难题，AI为你解答')
+                .fontSize(12)
+                .fontColor('#B0FFFFFF')
+                .margin({ top: 4 })
             }
             .width('100%')
-
-            // 数据可信度说明
-            Text('* 以上数据基于往届学员大数据分析')
-              .fontSize(11)
-              .fontColor($r('app.color.moon_text_hint'))
-              .margin({ top: 4 })
+            .padding(20)
+            .alignItems(HorizontalAlign.Start)
+            .borderRadius(20)
+            .linearGradient({
+              angle: 135,
+              colors: [['#0066FF', 0.0], ['#003D99', 1.0]]
+            })
+            .shadow({ radius: 16, color: '#300066FF', offsetY: 6 })
           }
           .width('100%')
-          .margin({ top: 24, left: 20, right: 20 })
+          .padding({ left: 20, right: 20 })
+          .margin({ bottom: 10 })
+          .onClick(() => {
+            chatStore.createConversation();
+          })
 
-          // === 最新政策 ===
+          // === Bento 三列：核心数据 + 院校 + 志愿 ===
+          Row() {
+            Column() {
+              Text('+40%')
+                .fontSize(22)
+                .fontWeight(FontWeight.Bold)
+                .fontColor('#0066FF')
+              Text('薪资提升')
+                .fontSize(11)
+                .fontColor($r('app.color.moon_text_secondary'))
+                .margin({ top: 2 })
+            }
+            .layoutWeight(1)
+            .height(80)
+            .justifyContent(FlexAlign.Center)
+            .borderRadius(16)
+            .backgroundColor($r('app.color.moon_value_card_bg'))
+            .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+            .shadow(LiquidGlass.SHADOW_CONTAINER)
+            .margin({ right: 5 })
+
+            Column() {
+              SymbolGlyph($r('sys.symbol.building'))
+                .fontSize(24)
+                .fontColor(['#FF9500'])
+              Text('院校库')
+                .fontSize(11)
+                .fontColor($r('app.color.moon_text_secondary'))
+                .margin({ top: 6 })
+            }
+            .layoutWeight(1)
+            .height(80)
+            .justifyContent(FlexAlign.Center)
+            .borderRadius(16)
+            .backgroundColor($r('app.color.moon_value_card_bg'))
+            .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+            .shadow(LiquidGlass.SHADOW_CONTAINER)
+            .margin({ left: 5, right: 5 })
+            .onClick(() => {
+              this.onNavigate(RouteNames.COLLEGE_LIST);
+            })
+
+            Column() {
+              SymbolGlyph($r('sys.symbol.bookmark'))
+                .fontSize(24)
+                .fontColor(['#34C759'])
+              Text('志愿填报')
+                .fontSize(11)
+                .fontColor($r('app.color.moon_text_secondary'))
+                .margin({ top: 6 })
+            }
+            .layoutWeight(1)
+            .height(80)
+            .justifyContent(FlexAlign.Center)
+            .borderRadius(16)
+            .backgroundColor($r('app.color.moon_value_card_bg'))
+            .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+            .shadow(LiquidGlass.SHADOW_CONTAINER)
+            .margin({ left: 5 })
+            .onClick(() => {
+              this.onNavigate(RouteNames.VOLUNTEER_MAIN);
+            })
+          }
+          .width('100%')
+          .padding({ left: 20, right: 20 })
+          .margin({ bottom: 10 })
+
+          // === Bento 两列：政策资讯 + 学习计划 ===
+          Row() {
+            Column() {
+              Row() {
+                SymbolGlyph($r('sys.symbol.doc'))
+                  .fontSize(20)
+                  .fontColor(['#AF52DE'])
+                Text('政策资讯')
+                  .fontSize(14)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor($r('app.color.moon_text_primary'))
+                  .margin({ left: 6 })
+              }
+              Text(this.policyList.length > 0 ? `${this.policyList.length}条最新政策` : '暂无政策')
+                .fontSize(12)
+                .fontColor($r('app.color.moon_text_secondary'))
+                .margin({ top: 6 })
+            }
+            .layoutWeight(1)
+            .height(80)
+            .padding(12)
+            .alignItems(HorizontalAlign.Start)
+            .justifyContent(FlexAlign.Center)
+            .borderRadius(16)
+            .backgroundColor($r('app.color.moon_value_card_bg'))
+            .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+            .shadow(LiquidGlass.SHADOW_CONTAINER)
+            .margin({ right: 5 })
+            .onClick(() => {
+              this.onNavigate(RouteNames.POLICY_DETAIL);
+            })
+
+            Column() {
+              Row() {
+                SymbolGlyph($r('sys.symbol.calendar'))
+                  .fontSize(20)
+                  .fontColor(['#FF6B35'])
+                Text('学习计划')
+                  .fontSize(14)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor($r('app.color.moon_text_primary'))
+                  .margin({ left: 6 })
+              }
+              Text('个性化备考方案')
+                .fontSize(12)
+                .fontColor($r('app.color.moon_text_secondary'))
+                .margin({ top: 6 })
+            }
+            .layoutWeight(1)
+            .height(80)
+            .padding(12)
+            .alignItems(HorizontalAlign.Start)
+            .justifyContent(FlexAlign.Center)
+            .borderRadius(16)
+            .backgroundColor($r('app.color.moon_value_card_bg'))
+            .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+            .shadow(LiquidGlass.SHADOW_CONTAINER)
+            .margin({ left: 5 })
+            .onClick(() => {
+              this.onNavigate(RouteNames.STUDY_PLAN);
+            })
+          }
+          .width('100%')
+          .padding({ left: 20, right: 20 })
+          .margin({ bottom: 10 })
+
+          // 间距
+          Blank().height(16)
+
+          // === 最新政策 — 横向滑动卡片 ===
           if (this.policyList.length > 0) {
             Column() {
               Row() {
@@ -464,7 +647,7 @@ export struct ChatPage {
                   .fontWeight(FontWeight.Medium)
                   .fontColor($r('app.color.moon_text_primary'))
                 Blank()
-                Text('查看全部')
+                Text('查看全部 >')
                   .fontSize(13)
                   .fontColor($r('app.color.brand_primary'))
                   .onClick(() => {
@@ -472,93 +655,54 @@ export struct ChatPage {
                   })
               }
               .width('100%')
-              .margin({ bottom: 10 })
+              .margin({ bottom: 10, left: 28, right: 28 })
 
-              ForEach(this.policyList.slice(0, 3), (policy: PolicyInfo) => {
-                Row() {
-                  Column() {
-                    Text(policy.title)
-                      .fontSize(14)
-                      .fontWeight(FontWeight.Medium)
-                      .fontColor($r('app.color.moon_text_primary'))
-                      .maxLines(1)
-                      .textOverflow({ overflow: TextOverflow.Ellipsis })
-                    Text(policy.summary)
-                      .fontSize(12)
-                      .fontColor($r('app.color.moon_text_secondary'))
-                      .maxLines(1)
-                      .textOverflow({ overflow: TextOverflow.Ellipsis })
-                      .margin({ top: 4 })
-                  }
-                  .alignItems(HorizontalAlign.Start)
-                  .layoutWeight(1)
-
-                  SymbolGlyph($r('sys.symbol.arrow_right'))
-                    .fontSize(12)
-                    .fontColor([$r('app.color.moon_text_hint')])
+              Scroll() {
+                Row({ space: 10 }) {
+                  ForEach(this.policyList.slice(0, 5), (policy: PolicyInfo) => {
+                    Column() {
+                      Text(policy.title)
+                        .fontSize(14)
+                        .fontWeight(FontWeight.Medium)
+                        .fontColor($r('app.color.moon_text_primary'))
+                        .maxLines(2)
+                        .textOverflow({ overflow: TextOverflow.Ellipsis })
+                      Text(policy.summary)
+                        .fontSize(12)
+                        .fontColor($r('app.color.moon_text_secondary'))
+                        .maxLines(2)
+                        .textOverflow({ overflow: TextOverflow.Ellipsis })
+                        .margin({ top: 6 })
+                      Text(policy.publishDate)
+                        .fontSize(11)
+                        .fontColor($r('app.color.moon_text_hint'))
+                        .margin({ top: 8 })
+                    }
+                    .width(180)
+                    .padding(14)
+                    .alignItems(HorizontalAlign.Start)
+                    .borderRadius(16)
+                    .backgroundColor($r('app.color.moon_value_card_bg'))
+                    .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+                    .shadow(LiquidGlass.SHADOW_CONTAINER)
+                    .onClick(() => {
+                      this.pathStack.pushPath({ name: RouteNames.POLICY_DETAIL, param: policy.id });
+                    })
+                  }, (policy: PolicyInfo) => policy.id)
                 }
-                .width('100%')
-                .padding(14)
-                .borderRadius(14)
-                .backgroundColor('#FFFFFF')
-                .shadow({ radius: 6, color: '#0F000000', offsetX: 0, offsetY: 1 })
-                .margin({ bottom: 8 })
-                .onClick(() => {
-                  this.pathStack.pushPath({ name: RouteNames.POLICY_DETAIL, param: policy.id });
-                })
-              }, (policy: PolicyInfo) => policy.id)
+                .padding({ left: 28, right: 28 })
+              }
+              .scrollable(ScrollDirection.Horizontal)
+              .scrollBar(BarState.Off)
+              .edgeEffect(EdgeEffect.Spring)
             }
             .width('100%')
-            .margin({ top: 24, left: 20, right: 20 })
+            .margin({ top: 16 })
           }
-
-          // 底部留白
-          Blank().height(20)
         }
         .width('100%')
-      }
-      .width('100%')
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Center)
-
-      // === 底部模拟输入框 ===
-      Row() {
-        Text('输入升本难题，我来解答...')
-          .fontSize(15)
-          .fontColor($r('app.color.moon_text_hint'))
-          .layoutWeight(1)
-        Column() {
-          SymbolGlyph($r('sys.symbol.arrow_up'))
-            .fontSize(16)
-            .fontColor(['#FFFFFF'])
-        }
-        .width(30)
-        .height(30)
-        .borderRadius(15)
-        .backgroundColor('#0066FF')
-        .justifyContent(FlexAlign.Center)
+        .layoutWeight(1)
         .alignItems(HorizontalAlign.Center)
-      }
-      .width('100%')
-      .padding({ left: 16, right: 16, top: 10, bottom: 10 })
-      .backgroundBlurStyle(BlurStyle.COMPONENT_THICK)
-      .backgroundEffect({
-        radius: 30,
-        saturation: 2.0,
-        brightness: 1.05,
-        color: '#30FFFFFF'
-      })
-      .borderRadius(24)
-      .margin({ left: 16, right: 16, bottom: 8 })
-      .shadow({ radius: 10, color: '#15000000', offsetX: 0, offsetY: 3 })
-      .onClick(() => {
-        chatStore.createConversation();
-      })
-
-      Text('内容由AI生成')
-        .fontSize(11)
-        .fontColor($r('app.color.moon_text_hint'))
-        .margin({ bottom: 4 })
     }
     .width('100%')
     .height('100%')

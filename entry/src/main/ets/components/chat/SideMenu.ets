@@ -1,9 +1,10 @@
 // 侧边栏面板 — Kimi风格对话历史 + 功能入口
 // 纯面板组件，父组件控制位置(translate)和宽度
 import { RouteNames } from '../../common/Constants';
-import { ChatFontSize, ChatRadius, KimiGradient } from '../../common/DesignTokens';
+import { ChatFontSize, ChatRadius, KimiGradient, LiquidGlass, Radius } from '../../common/DesignTokens';
 import { chatStore } from '../../stores/ChatStore';
 import { userStore } from '../../stores/UserStore';
+import { appStore } from '../../stores/AppStore';
 import { Conversation, ConversationGroup, getConversationGroup } from '../../models/ChatModel';
 
 // 侧边栏菜单项接口
@@ -14,8 +15,8 @@ interface SideMenuItem {
 }
 
 const FEATURE_ENTRIES: SideMenuItem[] = [
-  { label: '院校库', icon: $r('sys.symbol.building'), route: RouteNames.COLLEGE_DETAIL },
-  { label: '志愿填报', icon: $r('sys.symbol.bookmark'), route: RouteNames.VOLUNTEER_RESULT },
+  { label: '院校库', icon: $r('sys.symbol.building'), route: RouteNames.COLLEGE_LIST },
+  { label: '志愿填报', icon: $r('sys.symbol.bookmark'), route: RouteNames.VOLUNTEER_MAIN },
   { label: '学习计划', icon: $r('sys.symbol.calendar'), route: RouteNames.STUDY_PLAN },
   { label: '政策资讯', icon: $r('sys.symbol.doc'), route: RouteNames.POLICY_DETAIL },
 ];
@@ -53,16 +54,10 @@ export struct SideMenu {
       // 顶部用户区（含新建对话按钮）
       this.userHeader()
 
-      // 原有功能入口
+      // 功能入口（固定在头像下方，不随滚动移动）
       this.featureEntries()
 
-      // 分隔线
-      Divider()
-        .color($r('app.color.moon_divider'))
-        .strokeWidth(0.5)
-        .margin({ left: 16, right: 16, top: 2, bottom: 2 })
-
-      // 历史对话列表（可滚动）
+      // 历史对话列表（可滚动，直接跟在功能入口下方，无分隔线）
       this.conversationHistoryList()
     }
     .width('100%')
@@ -71,57 +66,72 @@ export struct SideMenu {
     .padding({ top: this.safeAreaTop })
   }
 
-  // 顶部用户区
+  // 顶部用户区 — 液态玻璃卡片 + 头像 + 昵称 + 签名
   @Builder
   userHeader() {
     Row({ space: 12 }) {
-      // 头像（品牌蓝圆形）
-      Column() {
-        Text('JM')
-          .fontSize(16)
-          .fontColor('#FFFFFF')
-          .fontWeight(FontWeight.Medium)
+      // 头像 — 用户自定义头像或默认Logo + 品牌蓝渐变环
+      Stack() {
+        // 外圈品牌蓝渐变
+        Column()
+          .width(52)
+          .height(52)
+          .borderRadius(26)
+          .linearGradient({
+            angle: KimiGradient.ANGLE,
+            colors: [[KimiGradient.START_COLOR, 0.0], [KimiGradient.END_COLOR, 1.0]]
+          })
+        // 内圈头像：有自定义头像用自定义，否则用默认Logo
+        if (appStore.avatar.length > 0) {
+          Image(appStore.avatar)
+            .width(44)
+            .height(44)
+            .borderRadius(22)
+            .objectFit(ImageFit.Cover)
+        } else {
+          Image($r('app.media.logo'))
+            .width(44)
+            .height(44)
+            .borderRadius(22)
+            .objectFit(ImageFit.Cover)
+        }
       }
-      .width(48)
-      .height(48)
-      .borderRadius(24)
-      .linearGradient({
-        angle: KimiGradient.ANGLE,
-        colors: [[KimiGradient.START_COLOR, 0.0], [KimiGradient.END_COLOR, 1.0]]
-      })
-      .justifyContent(FlexAlign.Center)
-      .alignItems(HorizontalAlign.Center)
+      .width(52)
+      .height(52)
 
       Column({ space: 4 }) {
-        Row({ space: 6 }) {
-          Text('觉明同学')
-            .fontSize(16)
-            .fontWeight(FontWeight.Medium)
-            .fontColor($r('app.color.moon_text_primary'))
-
-          Text('VIP')
-            .fontSize(10)
-            .fontColor('#FFFFFF')
-            .fontWeight(FontWeight.Bold)
-            .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-            .borderRadius(8)
-            .linearGradient({
-              angle: KimiGradient.ANGLE,
-              colors: [[KimiGradient.START_COLOR, 0.0], [KimiGradient.END_COLOR, 1.0]]
-            })
-        }
+        Text(appStore.nickname || '觉明同学')
+          .fontSize(16)
+          .fontWeight(FontWeight.Medium)
+          .fontColor($r('app.color.moon_text_primary'))
 
         Text(userStore.signature || '点击设置签名')
           .fontSize(12)
           .fontColor($r('app.color.moon_text_secondary'))
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
       }
       .alignItems(HorizontalAlign.Start)
+      .layoutWeight(1)
 
-      Blank()
+      // 右箭头 — 指示可点击进入设置
+      SymbolGlyph($r('sys.symbol.chevron_right'))
+        .fontSize(14)
+        .fontColor([$r('app.color.moon_text_hint')])
     }
     .width('100%')
-    .height(72)
-    .padding({ left: 20, right: 20 })
+    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+    .margin({ left: 12, right: 12, top: 8, bottom: 4 })
+    .borderRadius(Radius.MD)
+    .backgroundBlurStyle(LiquidGlass.CONTAINER_BLUR)
+    .backgroundEffect({
+      radius: LiquidGlass.CONTAINER_RADIUS,
+      saturation: LiquidGlass.CONTAINER_SATURATION,
+      brightness: LiquidGlass.CONTAINER_BRIGHTNESS,
+      color: LiquidGlass.CONTAINER_COLOR
+    })
+    .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+    .shadow(LiquidGlass.SHADOW_CONTAINER)
     .alignItems(VerticalAlign.Center)
     .onClick(() => {
       this.onNavigate(RouteNames.SETTING);
@@ -129,7 +139,7 @@ export struct SideMenu {
     })
   }
 
-  // 历史对话列表
+  // 历史对话列表（可滚动，直接跟在功能入口下方）
   @Builder
   conversationHistoryList() {
     if (chatStore.conversations.length === 0) {
@@ -166,10 +176,20 @@ export struct SideMenu {
     }
   }
 
-  // 单个对话项
+  // 单个对话项 — 选中态显示左侧品牌蓝竖条
   @Builder
   conversationItem(conversation: Conversation) {
     Row() {
+      // 选中态左侧品牌蓝竖条
+      if (chatStore.currentConversation === conversation) {
+        Column()
+          .width(3)
+          .height(20)
+          .borderRadius(1.5)
+          .backgroundColor($r('app.color.brand_primary'))
+          .margin({ right: 8 })
+      }
+
       Text(conversation.title)
         .fontSize(14)
         .fontColor(chatStore.currentConversation === conversation
@@ -196,7 +216,7 @@ export struct SideMenu {
     }
     .width('100%')
     .height(44)
-    .padding({ left: 16, right: 12 })
+    .padding({ left: 12, right: 12 })
     .margin({ left: 12, right: 12 })
     .borderRadius(ChatRadius.MENU_ITEM)
     .backgroundColor(chatStore.currentConversation === conversation
@@ -228,13 +248,15 @@ export struct SideMenu {
         .padding({ left: 16, right: 16 })
         .margin({ left: 12, right: 12, bottom: 6 })
         .borderRadius(ChatRadius.MENU_ITEM)
-        .backgroundBlurStyle(BlurStyle.COMPONENT_THICK)
+        .backgroundBlurStyle(LiquidGlass.CONTAINER_BLUR)
         .backgroundEffect({
-          radius: 30,
-          saturation: 2.0,
-          brightness: 1.05,
-          color: '#30FFFFFF'
+          radius: LiquidGlass.CONTAINER_RADIUS,
+          saturation: LiquidGlass.CONTAINER_SATURATION,
+          brightness: LiquidGlass.CONTAINER_BRIGHTNESS,
+          color: LiquidGlass.CONTAINER_COLOR
         })
+        .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+        .shadow(LiquidGlass.SHADOW_CONTAINER)
         .alignItems(VerticalAlign.Center)
         .onClick(() => {
           this.onNavigate(item.route);

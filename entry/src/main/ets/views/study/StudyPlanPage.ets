@@ -1,4 +1,5 @@
 import { AppColors, RouteNames, ButtonStyles } from '../../common/Constants';
+import { NavHeader } from '../../components/NavHeader';
 import { FontSize, FontWeightTokens, Spacing, Radius, Shadows, GlassEffect } from '../../common/DesignTokens';
 import { Duration, getStaggerDelay, AnimConfig } from '../../common/AnimationHelper';
 import { StudyPhase, GapAnalysis } from '../../models/StudyPlanModel';
@@ -54,11 +55,11 @@ export struct StudyPlanPage {
   }
 
   build() {
-    Column() {
-      // 状态栏安全区避让
-      Blank().height(AppStorage.get<number>('safeAreaTop') ?? 0)
+    NavDestination() {
+      Column() {
+        NavHeader({ title: '学习计划' })
 
-      if (this.isLoading) {
+        if (this.isLoading) {
         LoadingView({ message: '正在生成学习规划...' })
       } else {
         Scroll() {
@@ -75,7 +76,9 @@ export struct StudyPlanPage {
     .width('100%')
     .height('100%')
     .backgroundColor(AppColors.BACKGROUND_COLOR)
-    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
+  }
+  .hideTitleBar(true)
+  .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
   }
 
   @Builder
@@ -105,23 +108,14 @@ export struct StudyPlanPage {
     .shadow(Shadows.GLASS)
     .scale({ x: this.gapCardScale, y: this.gapCardScale })
     .opacity(this.gapCardOpacity)
+    .animation({ duration: AnimConfig.LIQUID_PRESS_DURATION, curve: AnimConfig.LIQUID_PRESS_CURVE })
     .onTouch((event: TouchEvent) => {
       if (event.type === TouchType.Down) {
-        this.getUIContext()?.animateTo({
-          duration: AnimConfig.LIQUID_PRESS_DURATION,
-          curve: AnimConfig.LIQUID_PRESS_CURVE,
-        }, () => {
-          this.gapCardScale = AnimConfig.PRESS_SCALE;
-          this.gapCardOpacity = AnimConfig.PRESS_OPACITY;
-        });
+        this.gapCardScale = AnimConfig.PRESS_SCALE;
+        this.gapCardOpacity = AnimConfig.PRESS_OPACITY;
       } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
-        this.getUIContext()?.animateTo({
-          duration: AnimConfig.LIQUID_RELEASE_DURATION,
-          curve: AnimConfig.LIQUID_RELEASE_CURVE,
-        }, () => {
-          this.gapCardScale = 1.0;
-          this.gapCardOpacity = 1.0;
-        });
+        this.gapCardScale = 1.0;
+        this.gapCardOpacity = 1.0;
       }
     })
   }
@@ -219,23 +213,14 @@ export struct StudyPlanPage {
         .backgroundColor(ButtonStyles.PRIMARY_BTN_BG)
         .scale({ x: this.btn1Scale, y: this.btn1Scale })
         .opacity(this.btn1Opacity)
+        .animation({ duration: AnimConfig.BUTTON_PRESS_DURATION, curve: AnimConfig.BUTTON_PRESS_CURVE })
         .onTouch((event: TouchEvent) => {
           if (event.type === TouchType.Down) {
-            this.getUIContext()?.animateTo({
-              duration: AnimConfig.BUTTON_PRESS_DURATION,
-              curve: AnimConfig.BUTTON_PRESS_CURVE,
-            }, () => {
-              this.btn1Scale = AnimConfig.BUTTON_PRESS_SCALE;
-              this.btn1Opacity = AnimConfig.BUTTON_PRESS_OPACITY;
-            });
+            this.btn1Scale = AnimConfig.BUTTON_PRESS_SCALE;
+            this.btn1Opacity = AnimConfig.BUTTON_PRESS_OPACITY;
           } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
-            this.getUIContext()?.animateTo({
-              duration: AnimConfig.BUTTON_RELEASE_DURATION,
-              curve: AnimConfig.BUTTON_RELEASE_CURVE,
-            }, () => {
-              this.btn1Scale = 1.0;
-              this.btn1Opacity = 1.0;
-            });
+            this.btn1Scale = 1.0;
+            this.btn1Opacity = 1.0;
           }
         })
         .onClick(() => {
@@ -253,23 +238,14 @@ export struct StudyPlanPage {
         .margin({ left: Spacing.MD })
         .scale({ x: this.btn2Scale, y: this.btn2Scale })
         .opacity(this.btn2Opacity)
+        .animation({ duration: AnimConfig.BUTTON_PRESS_DURATION, curve: AnimConfig.BUTTON_PRESS_CURVE })
         .onTouch((event: TouchEvent) => {
           if (event.type === TouchType.Down) {
-            this.getUIContext()?.animateTo({
-              duration: AnimConfig.BUTTON_PRESS_DURATION,
-              curve: AnimConfig.BUTTON_PRESS_CURVE,
-            }, () => {
-              this.btn2Scale = AnimConfig.BUTTON_PRESS_SCALE;
-              this.btn2Opacity = AnimConfig.BUTTON_PRESS_OPACITY;
-            });
+            this.btn2Scale = AnimConfig.BUTTON_PRESS_SCALE;
+            this.btn2Opacity = AnimConfig.BUTTON_PRESS_OPACITY;
           } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
-            this.getUIContext()?.animateTo({
-              duration: AnimConfig.BUTTON_RELEASE_DURATION,
-              curve: AnimConfig.BUTTON_RELEASE_CURVE,
-            }, () => {
-              this.btn2Scale = 1.0;
-              this.btn2Opacity = 1.0;
-            });
+            this.btn2Scale = 1.0;
+            this.btn2Opacity = 1.0;
           }
         })
         .onClick(() => {

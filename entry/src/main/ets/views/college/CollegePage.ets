@@ -1,4 +1,5 @@
 import { AppColors, RouteNames } from '../../common/Constants';
+import { NavHeader } from '../../components/NavHeader';
 import { FontSize, Spacing, Radius, Shadows, GlassEffect } from '../../common/DesignTokens';
 import { Duration, AnimConfig } from '../../common/AnimationHelper';
 import { CollegeInfo, CollegeFilter } from '../../models/CollegeModel';
@@ -198,12 +199,12 @@ export struct CollegePage {
   }
 
   build() {
-    Column() {
-      // 状态栏避让
-      Blank().height(AppStorage.get<number>('safeAreaTop') ?? 0)
-      
-      // 搜索栏
-      SearchBar({
+    NavDestination() {
+      Column() {
+        NavHeader({ title: '院校库' })
+
+        // 搜索栏
+        SearchBar({
         placeholder: '搜索院校名称...',
         onSearch: (keyword: string) => {
           this.onSearch(keyword);
@@ -251,6 +252,8 @@ export struct CollegePage {
     .width('100%')
     .height('100%')
     .backgroundColor(AppColors.BACKGROUND_COLOR)
-    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
+  }
+  .hideTitleBar(true)
+  .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
   }
 }

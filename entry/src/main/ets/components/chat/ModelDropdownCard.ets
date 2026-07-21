@@ -1,11 +1,13 @@
-// 模型选择悬浮卡片 — 从顶部向下弹出的白色大圆角卡片
+// 模型选择悬浮卡片 — 从顶部向下弹出的液态玻璃大圆角卡片
 // 非全屏遮罩Modal，透明背景，点击外部空白区域自动收回
 import { modelStore, AiModel } from '../../stores/ModelStore';
+import { LiquidGlass } from '../../common/DesignTokens';
 
 @ComponentV2
 export struct ModelDropdownCard {
   @Param isVisible: boolean = false;
   @Param onClose: () => void = () => {};
+  @Param onNavigate: (route: string) => void = (_r: string) => {};
   @Local safeAreaTop: number = 0;
 
   aboutToAppear(): void {
@@ -58,20 +60,28 @@ export struct ModelDropdownCard {
               : Color.Transparent)
             .margin({ left: 6, right: 6 })
             .onClick(() => {
-              modelStore.switchModel(model.id);
+              if (model.route.length > 0) {
+                // 有路由的模式 — 跳转页面
+                this.onNavigate(model.route);
+              } else {
+                // AI对话模式 — 切换模式
+                modelStore.switchModel(model.id);
+              }
               this.onClose();
             })
           }, (model: AiModel) => model.id)
         }
         .width(240)
         .borderRadius(24)
+        .backgroundBlurStyle(LiquidGlass.FLOATING_BLUR)
         .backgroundEffect({
-          radius: 25,
-          saturation: 1.8,
-          brightness: 1.0,
-          color: '#50FFFFFF'
+          radius: LiquidGlass.FLOATING_RADIUS,
+          saturation: LiquidGlass.FLOATING_SATURATION,
+          brightness: LiquidGlass.FLOATING_BRIGHTNESS,
+          color: LiquidGlass.FLOATING_COLOR
         })
-        .shadow({ radius: 30, color: '#15000000', offsetX: 0, offsetY: 8 })
+        .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+        .shadow(LiquidGlass.SHADOW_FAR)
         .padding({ top: 6, bottom: 6 })
         // 定位在顶栏正下方，水平居中
         .margin({ top: this.safeAreaTop + 64 })

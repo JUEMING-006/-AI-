@@ -3,6 +3,7 @@ import { FontSize, Spacing, Radius, Shadows, GlassEffect } from '../../common/De
 import { AnimConfig } from '../../common/AnimationHelper';
 import { volunteerService } from '../../services/VolunteerService';
 import { CommonCard } from '../../components/CommonCard';
+import { NavHeader } from '../../components/NavHeader';
 import { getDaysCountdown } from '../../common/Utils';
 
 // 三梯度颜色
@@ -39,7 +40,7 @@ export struct VolunteerPage {
   private quickEntries: QuickEntry[] = [
     { icon: $r('sys.symbol.star'), title: '智能选志愿', subtitle: '冲稳保方案', route: RouteNames.VOLUNTEER_RESULT, color: '#007AFF' },
     { icon: $r('sys.symbol.doc'), title: '我的志愿表', subtitle: '已选0所', route: RouteNames.VOLUNTEER_FORM, color: '#10B981' },
-    { icon: $r('sys.symbol.clock'), title: '分数线查询', subtitle: '历年数据', route: RouteNames.SCORE_LINE, color: '#FF9500' },
+    { icon: $r('sys.symbol.magnifyingglass'), title: '分数线查询', subtitle: '历年数据', route: RouteNames.SCORE_LINE, color: '#FF9500' },
     { icon: $r('sys.symbol.checkmark'), title: '志愿诊断', subtitle: '风险评估', route: RouteNames.VOLUNTEER_DIAGNOSE, color: '#FF6B6B' }
   ];
 
@@ -76,11 +77,11 @@ export struct VolunteerPage {
   }
 
   build() {
-    Column() {
-      // 状态栏安全区避让
-      Blank().height(AppStorage.get<number>('safeAreaTop') ?? 0)
+    NavDestination() {
+      Column() {
+        NavHeader({ title: '志愿填报' })
 
-      Scroll() {
+        Scroll() {
         Column() {
           // ========== 顶部Banner：成绩摘要卡片 ==========
           this.scoreBanner()
@@ -102,12 +103,14 @@ export struct VolunteerPage {
         .width('100%')
         .padding({ left: Spacing.LG, right: Spacing.LG, top: Spacing.SM, bottom: Spacing.XL })
       }
-      .layoutWeight(1)
-      .scrollBar(BarState.Off)
-      .edgeEffect(EdgeEffect.Spring)
+        .layoutWeight(1)
+        .scrollBar(BarState.Off)
+        .edgeEffect(EdgeEffect.Spring)
+      }
+      .width('100%')
+      .height('100%')
     }
-    .width('100%')
-    .height('100%')
+    .hideTitleBar(true)
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
   }
 
@@ -456,7 +459,7 @@ export struct VolunteerPage {
     CommonCard() {
       Column() {
         Row() {
-          SymbolGlyph($r('sys.symbol.clock'))
+          SymbolGlyph($r('sys.symbol.calendar'))
             .fontSize(20)
             .fontColor([AppColors.WARNING_COLOR])
 

@@ -1,3 +1,7 @@
+/**
+ * @deprecated 此组件已废弃，当前架构使用 ChatPage 作为唯一主页，不再使用底部Tab栏。
+ * 保留用于兼容旧代码，新功能请勿引用此组件。
+ */
 import { AppColors, TabIcons, TabLabels } from '../common/Constants';
 import { GlassEffect, Radius, Shadows, Spacing } from '../common/DesignTokens';
 

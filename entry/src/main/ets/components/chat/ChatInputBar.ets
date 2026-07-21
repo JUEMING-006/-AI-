@@ -1,21 +1,7 @@
-// 底部输入区 — 快捷功能坞 + 胶囊输入容器 + 附件/发送按钮 + AI生成提示
-// 极简轻量化设计：微投影悬浮胶囊，无生硬边框
-import { ChatFontSize, KimiGradient } from '../../common/DesignTokens';
-import { AppColors, RouteNames } from '../../common/Constants';
-
-interface QuickAction {
-  label: string;
-  icon: Resource;
-  route: string;
-  color: string;
-}
-
-const QUICK_ACTIONS: QuickAction[] = [
-  { label: '院校库', icon: $r('sys.symbol.building'), route: RouteNames.COLLEGE_DETAIL, color: '#FF9500' },
-  { label: '志愿填报', icon: $r('sys.symbol.bookmark'), route: RouteNames.VOLUNTEER_RESULT, color: '#34C759' },
-  { label: '学习计划', icon: $r('sys.symbol.calendar'), route: RouteNames.STUDY_PLAN, color: '#007AFF' },
-  { label: '政策资讯', icon: $r('sys.symbol.doc'), route: RouteNames.POLICY_DETAIL, color: '#AF52DE' },
-];
+// 底部输入区 — 深度思考/搜索开关 + 胶囊输入容器 + 附件/发送按钮 + AI生成提示
+// 液态玻璃质感 + 按压反馈微动画
+import { ChatFontSize, ChatRadius, KimiGradient, LiquidGlass } from '../../common/DesignTokens';
+import { AnimConfig } from '../../common/AnimationHelper';
 
 @ComponentV2
 export struct ChatInputBar {
@@ -24,39 +10,70 @@ export struct ChatInputBar {
   @Param onNavigate: (route: string) => void = (_r: string) => {};
   @Param disabled: boolean = false;
   @Local inputValue: string = '';
+  @Local sendButtonScale: number = 1.0;
+  @Local deepThinkingEnabled: boolean = false;
+  @Local searchEnabled: boolean = false;
+
+  // 发送按钮按压反馈
+  private onSendTouch(event: TouchEvent): void {
+    if (event.type === TouchType.Down) {
+      this.getUIContext()?.animateTo({ duration: AnimConfig.BUTTON_PRESS_DURATION, curve: AnimConfig.BUTTON_PRESS_CURVE }, () => {
+        this.sendButtonScale = 0.88;
+      });
+    } else {
+      this.getUIContext()?.animateTo({ duration: AnimConfig.BUTTON_RELEASE_DURATION, curve: AnimConfig.BUTTON_RELEASE_CURVE }, () => {
+        this.sendButtonScale = 1.0;
+      });
+    }
+  }
 
   build() {
     Column() {
-      // 快捷功能坞 — 横向滑动胶囊按钮
-      Scroll() {
-        Row({ space: 8 }) {
-          ForEach(QUICK_ACTIONS, (item: QuickAction) => {
-            Button() {
-              Row({ space: 4 }) {
-                SymbolGlyph(item.icon)
-                  .fontSize(14)
-                  .fontColor([item.color])
-                Text(item.label)
-                  .fontSize(13)
-                  .fontColor($r('app.color.moon_text_primary'))
-              }
-            }
-            .type(ButtonType.Normal)
-            .height(32)
-            .padding({ left: 12, right: 12 })
-            .backgroundColor('#FFFFFF')
-            .borderRadius(16)
-            .shadow({ radius: 4, color: '#15000000', offsetX: 0, offsetY: 2 })
-            .onClick(() => {
-              this.onNavigate(item.route);
-            })
-          }, (item: QuickAction) => item.route)
+      // 深度思考 + 搜索 开关
+      Row({ space: 8 }) {
+        // 深度思考开关
+        Button() {
+          Row({ space: 4 }) {
+            SymbolGlyph($r('sys.symbol.lightbulb'))
+              .fontSize(13)
+              .fontColor([this.deepThinkingEnabled ? '#FFFFFF' : $r('app.color.moon_text_secondary')])
+            Text('深度思考')
+              .fontSize(13)
+              .fontColor(this.deepThinkingEnabled ? '#FFFFFF' : $r('app.color.moon_text_secondary'))
+          }
         }
-        .padding({ left: 16, right: 16 })
+        .type(ButtonType.Normal)
+        .height(28)
+        .padding({ left: 10, right: 10 })
+        .borderRadius(14)
+        .backgroundColor(this.deepThinkingEnabled ? $r('app.color.brand_primary') : $r('app.color.moon_function_tag_bg'))
+        .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+        .onClick(() => {
+          this.deepThinkingEnabled = !this.deepThinkingEnabled;
+        })
+
+        // 搜索开关
+        Button() {
+          Row({ space: 4 }) {
+            SymbolGlyph($r('sys.symbol.magnifyingglass'))
+              .fontSize(13)
+              .fontColor([this.searchEnabled ? '#FFFFFF' : $r('app.color.moon_text_secondary')])
+            Text('搜索')
+              .fontSize(13)
+              .fontColor(this.searchEnabled ? '#FFFFFF' : $r('app.color.moon_text_secondary'))
+          }
+        }
+        .type(ButtonType.Normal)
+        .height(28)
+        .padding({ left: 10, right: 10 })
+        .borderRadius(14)
+        .backgroundColor(this.searchEnabled ? $r('app.color.brand_primary') : $r('app.color.moon_function_tag_bg'))
+        .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+        .onClick(() => {
+          this.searchEnabled = !this.searchEnabled;
+        })
       }
-      .scrollable(ScrollDirection.Horizontal)
-      .scrollBar(BarState.Off)
-      .width('100%')
+      .padding({ left: 16, right: 16 })
       .margin({ bottom: 8 })
 
       // 输入容器 — 集成式布局，附件按钮+输入框+发送按钮在同一行
@@ -70,8 +87,9 @@ export struct ChatInputBar {
         .type(ButtonType.Circle)
         .width(32)
         .height(32)
-        .backgroundColor('#E8E8E8')
-        .shadow({ radius: 4, color: '#15000000', offsetX: 0, offsetY: 2 })
+        .backgroundColor($r('app.color.moon_icon_bg'))
+        .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+        .shadow(LiquidGlass.SHADOW_CONTAINER)
         .borderRadius(16)
         .margin({ right: 8 })
         .onClick(() => {
@@ -103,11 +121,12 @@ export struct ChatInputBar {
           .type(ButtonType.Circle)
           .width(30)
           .height(30)
+          .scale({ x: this.sendButtonScale, y: this.sendButtonScale })
           .linearGradient({
             angle: KimiGradient.ANGLE,
             colors: [[KimiGradient.START_COLOR, 0.0], [KimiGradient.END_COLOR, 1.0]]
           })
-          .shadow({ radius: 4, color: '#20000000', offsetX: 0, offsetY: 2 })
+          .shadow({ radius: 6, color: '#200066FF', offsetX: 0, offsetY: 2 })
           .margin({ left: 8 })
           .onClick(() => {
             const content: string = this.inputValue.trim();
@@ -116,6 +135,7 @@ export struct ChatInputBar {
               this.inputValue = '';
             }
           })
+          .onTouch((event: TouchEvent) => this.onSendTouch(event))
         } else {
           // 语音按钮
           Button() {
@@ -126,23 +146,25 @@ export struct ChatInputBar {
           .type(ButtonType.Circle)
           .width(30)
           .height(30)
-          .backgroundColor('#FFFFFF')
-          .shadow({ radius: 4, color: '#15000000', offsetX: 0, offsetY: 2 })
+          .backgroundColor($r('app.color.moon_function_tag_bg'))
+          .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+          .shadow(LiquidGlass.SHADOW_CONTAINER)
           .borderRadius(15)
           .margin({ left: 8 })
         }
       }
       .width('100%')
       .padding({ left: 10, right: 10, top: 6, bottom: 6 })
-      .backgroundBlurStyle(BlurStyle.COMPONENT_THICK)
+      .backgroundBlurStyle(LiquidGlass.CONTAINER_BLUR)
       .backgroundEffect({
-        radius: 30,
-        saturation: 2.0,
-        brightness: 1.05,
-        color: '#30FFFFFF'
+        radius: LiquidGlass.CONTAINER_RADIUS,
+        saturation: LiquidGlass.CONTAINER_SATURATION,
+        brightness: LiquidGlass.CONTAINER_BRIGHTNESS,
+        color: LiquidGlass.CONTAINER_COLOR
       })
-      .shadow({ radius: 10, color: '#15000000', offsetX: 0, offsetY: 3 })
-      .borderRadius(20)
+      .border({ width: LiquidGlass.BORDER_WIDTH, color: $r('app.color.moon_card_border') })
+      .shadow(LiquidGlass.SHADOW_CONTAINER)
+      .borderRadius(ChatRadius.INPUT)
       .margin({ left: 16, right: 16 })
 
       // AI生成提示文字
