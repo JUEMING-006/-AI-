@@ -11,6 +11,12 @@ export class CollegeInfo {
   @Trace website: string = '';
   @Trace isFavorite: boolean = false;
   @Trace logoUrl: string = '';
+  @Trace description: string = '';   // 院校简介
+  @Trace tags: string[] = [];        // 标签（如'师范类','综合类','理工类'）
+  @Trace majors: string[] = [];      // 招生专业列表
+  @Trace enrollCount: number = 0;    // 年度招生人数
+  @Trace minScore: number = 0;       // 最低录取分
+  @Trace category: string = '';      // 院校类别（'师范','综合','理工','财经'等）
 }
 
 @ObservedV2

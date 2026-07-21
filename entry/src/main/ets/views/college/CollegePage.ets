@@ -92,20 +92,46 @@ struct CollegeCard {
         }
         .width('100%')
 
-        // 省份城市
-        Text(`${this.college.province} · ${this.college.city}`)
+        // 省份城市 + 类别
+        Text(`${this.college.province} · ${this.college.city} · ${this.college.category}`)
           .fontSize(FontSize.BODY)
           .fontColor(AppColors.TEXT_SECONDARY)
           .margin({ top: Spacing.SM })
+
+        // 标签行
+        Flex({ wrap: FlexWrap.Wrap }) {
+          ForEach(this.college.tags, (tag: string) => {
+            Text(tag)
+              .fontSize(10)
+              .fontColor(tag === '双一流' || tag === '211' ? '#FF6B35' : AppColors.TEXT_HINT)
+              .backgroundColor(tag === '双一流' || tag === '211' ? '#FFF0E8' : '#F5F5F5')
+              .borderRadius(4)
+              .padding({ left: 6, right: 6, top: 1, bottom: 1 })
+              .margin({ right: 4, bottom: 4 })
+          }, (tag: string) => tag)
+        }
+        .width('100%')
+        .margin({ top: Spacing.XS })
+
+        // 招生信息
+        Row({ space: 16 }) {
+          Text(`招生 ${this.college.enrollCount}人`)
+            .fontSize(FontSize.CAPTION)
+            .fontColor(AppColors.TEXT_HINT)
+          Text(`最低分 ${this.college.minScore}`)
+            .fontSize(FontSize.CAPTION)
+            .fontColor(AppColors.TEXT_HINT)
+        }
+        .width('100%')
+        .margin({ top: Spacing.XS })
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
 
       // 收藏按钮
-      Image(this.college.isFavorite ? $r('sys.symbol.checkmark') : $r('sys.symbol.star'))
-        .width(24)
-        .height(24)
-        .fillColor(this.college.isFavorite ? AppColors.WARNING_COLOR : AppColors.TEXT_HINT)
+      SymbolGlyph(this.college.isFavorite ? $r('sys.symbol.checkmark') : $r('sys.symbol.star'))
+        .fontSize(24)
+        .fontColor([this.college.isFavorite ? AppColors.WARNING_COLOR : AppColors.TEXT_HINT])
         .scale({ x: this.favScale, y: this.favScale })
         .animation({ duration: Duration.FAST, curve: Curve.EaseOut })
         .onClick(() => {
@@ -169,10 +195,26 @@ export struct CollegePage {
       type: this.selectedType === '全部' ? '' : this.selectedType,
       keyword: this.searchKeyword,
     };
+    // 超时保护：3秒后强制退出加载状态
+    let timedOut: boolean = false;
+    const timer: number = setTimeout(() => {
+      if (this.isLoading) {
+        timedOut = true;
+        this.isLoading = false;
+        this.isEmpty = true;
+      }
+    }, 3000);
     collegeService.getColleges(filter).then((data: CollegeInfo[]) => {
+      if (timedOut) return;
+      clearTimeout(timer);
       this.dataSource.setData(data);
       this.isLoading = false;
       this.isEmpty = data.length === 0;
+    }).catch((error: Error) => {
+      if (timedOut) return;
+      clearTimeout(timer);
+      this.isLoading = false;
+      this.isEmpty = true;
     });
   }
 

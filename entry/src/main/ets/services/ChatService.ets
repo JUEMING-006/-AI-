@@ -1,6 +1,6 @@
 // AI 对话服务 — [BACKEND] 后端调用已注释，当前使用前端 mock 回复
 import { chatStore } from '../stores/ChatStore';
-import { ChatMessage, MessageRole } from '../models/ChatModel';
+import { ChatMessage, MessageRole, SourceRef } from '../models/ChatModel';
 // [BACKEND] import { httpClient } from './HttpClient';
 // [BACKEND] import type { AxiosResponse } from '@ohos/axios';
 import { hilog } from '@kit.PerformanceAnalysisKit';
@@ -61,7 +61,63 @@ function getMockReply(userContent: string): string {
   if (lower.includes('志愿') || lower.includes('填报')) {
     return '专升本志愿填报建议采用"冲稳保"策略：\n\n**冲（20%）**：选择略高于自己分数的院校，争取冲刺机会\n**稳（50%）**：选择与自己分数匹配的院校，确保录取概率\n**保（30%）**：选择低于自己分数的院校，作为保底\n\n**注意事项：**\n1. 仔细阅读各院校招生章程，了解录取规则\n2. 关注是否有专业限制或加试要求\n3. 合理安排志愿顺序，平行志愿也有先后\n4. 服从专业调剂可增加录取机会\n\n你可以在「志愿填报」页面输入成绩，系统会自动为你匹配推荐院校。';
   }
-  return '你好！我是你的专升本 AI 助手，可以帮你解答以下问题：\n\n📚 **专升本政策** — 报考条件、考试科目、报名时间\n🏫 **院校选择** — 院校推荐、分数线查询、专业匹配\n📝 **学习计划** — 复习规划、每日任务、进度跟踪\n🎯 **志愿填报** — 冲稳保策略、院校推荐、录取概率\n\n请问有什么我可以帮你的吗？';
+  if (lower.includes('分数线') || lower.includes('录取') || lower.includes('分数')) {
+    return '专升本分数线是录取的关键参考指标，以下是详细说明：\n\n**分数线类型：**\n- **省控线（最低控制线）**：省教育考试院统一划定，低于此线无法投档\n- **院校线**：各院校实际录取最低分，通常≥省控线\n- **专业线**：同一院校不同专业分数线可能差异较大\n\n**2024年广东省专升本省控线参考：**\n- 文史类：180分\n- 理工类：160分\n- 经管类：170分\n- 教育类：190分\n\n**查询建议：**\n1. 关注省教育考试院官网发布的官方数据\n2. 在「院校库」查看各院校历年录取分数线\n3. 对比近三年分数线趋势，评估录取概率\n\n你可以告诉我你的专业和预估分数，我帮你分析可报院校。';
+  }
+  if (lower.includes('政策') || lower.includes('报名') || lower.includes('报考')) {
+    return '专升本最新政策要点如下：\n\n**报考条件：**\n1. 应届普通高职（专科）毕业生\n2. 或具有普通高职（专科）毕业学历的退役士兵\n3. 部分省份要求专业对口或相近\n\n**报名时间：**\n- 一般在每年1-3月报名，4-5月考试\n- 具体时间以省教育考试院通知为准\n\n**考试科目：**\n- 公共课：英语、政治（部分省份考数学）\n- 专业课：根据报考专业确定，通常1-2门\n- 各省份考试科目和分值不同\n\n**政策趋势：**\n- 扩招持续，部分院校新增招生计划\n- 职业本科纳入专升本招生范围\n- 退役士兵免文化课考试政策推广\n\n建议关注「政策资讯」页面获取最新动态。';
+  }
+  if (lower.includes('考试') || lower.includes('科目') || lower.includes('考什么')) {
+    return '专升本考试科目因省份和专业而异，以下是通用说明：\n\n**公共课（必考）：**\n- **英语**：大部分省份必考，满分100-150分\n- **政治**：部分省份必考，满分100分\n- **数学**：理工类专业通常考，满分100-150分\n- **大学语文**：文史类专业通常考\n\n**专业课（按专业划分）：**\n- 计算机类：计算机基础、数据结构等\n- 经管类：管理学、经济学等\n- 教育类：教育学、心理学等\n- 护理类：医学基础、护理学等\n\n**备考建议：**\n1. 查阅目标省份的考试大纲\n2. 公共课尽早开始复习，尤其是英语\n3. 专业课参考指定教材和历年真题\n4. 制定分阶段复习计划\n\n你可以在「学习计划」页面生成个性化备考方案。';
+  }
+  return '你好！我是你的专升本 AI 助手，可以帮你解答以下问题：\n\n📚 **专升本政策** — 报考条件、考试科目、报名时间\n🏫 **院校选择** — 院校推荐、分数线查询、专业匹配\n📝 **学习计划** — 复习规划、每日任务、进度跟踪\n🎯 **志愿填报** — 冲稳保策略、院校推荐、录取概率\n📊 **分数线查询** — 省控线、院校线、专业线\n\n请问有什么我可以帮你的吗？';
+}
+
+// mock 追问建议
+function getMockSuggestions(userContent: string): string[] {
+  const lower: string = userContent.toLowerCase();
+  if (lower.includes('专升本') || lower.includes('升本')) {
+    return ['专升本考试什么时候报名？', '专升本考试科目有哪些？', '如何选择目标院校？'];
+  }
+  if (lower.includes('院校') || lower.includes('学校') || lower.includes('大学')) {
+    return ['查看院校录取分数线', '哪些院校可以跨专业报考？', '公办和民办院校有什么区别？'];
+  }
+  if (lower.includes('专业') || lower.includes('科目')) {
+    return ['我的专业可以报哪些本科专业？', '热门专升本专业有哪些？', '跨专业报考有什么限制？'];
+  }
+  if (lower.includes('学习') || lower.includes('计划') || lower.includes('复习')) {
+    return ['生成个性化学习计划', '专升本英语怎么复习？', '如何高效备考专业课？'];
+  }
+  if (lower.includes('志愿') || lower.includes('填报')) {
+    return ['帮我分析冲稳保策略', '志愿填报有哪些注意事项？', '如何评估录取概率？'];
+  }
+  if (lower.includes('分数线') || lower.includes('录取') || lower.includes('分数')) {
+    return ['历年分数线趋势分析', '我的分数能上什么学校？', '省控线和院校线有什么区别？'];
+  }
+  if (lower.includes('政策') || lower.includes('报名') || lower.includes('报考')) {
+    return ['专升本报考条件是什么？', '退役士兵有什么优惠政策？', '2024年专升本有什么新政策？'];
+  }
+  return ['专升本考试科目有哪些？', '如何选择目标院校？', '专升本分数线是多少？'];
+}
+
+// mock 引用来源
+function getMockSources(userContent: string): SourceRef[] {
+  const lower: string = userContent.toLowerCase();
+  const sources: SourceRef[] = [];
+  if (lower.includes('政策') || lower.includes('报名') || lower.includes('报考')) {
+    sources.push(new SourceRef('广东省教育考试院', '2024年普通专升本招生工作通知', 'https://eea.gd.gov.cn'));
+    sources.push(new SourceRef('教育部', '普通高等学校专升本考试招生工作通知'));
+  }
+  if (lower.includes('院校') || lower.includes('学校') || lower.includes('大学')) {
+    sources.push(new SourceRef('院校库', '广东省专升本招生院校汇总信息'));
+  }
+  if (lower.includes('分数线') || lower.includes('录取')) {
+    sources.push(new SourceRef('广东省教育考试院', '2024年专升本各科类最低控制分数线'));
+  }
+  if (lower.includes('学习') || lower.includes('计划') || lower.includes('复习')) {
+    sources.push(new SourceRef('学习计划', '基于大数据的专升本备考方案推荐'));
+  }
+  return sources;
 }
 
 // AI 对话服务
@@ -112,7 +168,17 @@ export class ChatService {
         await delay(30);
       }
 
-      // 7. 完成回复
+      // 7. 添加引用来源
+      const sources: SourceRef[] = getMockSources(content);
+      for (const src of sources) {
+        chatStore.addSource(aiMessage, src.title, src.description, src.link);
+      }
+
+      // 8. 添加追问建议
+      const suggestions: string[] = getMockSuggestions(content);
+      chatStore.setSuggestions(aiMessage, suggestions);
+
+      // 9. 完成回复
       chatStore.finishAiMessage(aiMessage);
 
     } catch (error) {
